@@ -1,6 +1,7 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 // Importações de Exercicio/ExercicioDTO foram removidas
+import br.unipar.projetointegrador.frotisapi.dto.TreinoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.model.Treino;
 import br.unipar.projetointegrador.frotisapi.service.TreinoService;
 import br.unipar.projetointegrador.frotisapi.dto.TreinoDTO;
@@ -9,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/treino")
 public class TreinoController {
@@ -38,9 +39,14 @@ public class TreinoController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Treino> salvarTreino(@RequestBody Treino treino) {
-        Treino treinoSalvo = treinoService.save(treino);
-        return ResponseEntity.status(HttpStatus.CREATED).body(treinoSalvo);
+    public ResponseEntity<Treino> salvarTreino(@RequestBody TreinoRequestDTO dto) { // <-- MUDE AQUI
+        try {
+            Treino treinoSalvo = treinoService.save(dto); // <-- MUDE AQUI
+            return ResponseEntity.status(HttpStatus.CREATED).body(treinoSalvo);
+        } catch (Exception e) {
+            // Retorna 404 Not Found se o aluno ou instrutor não existirem
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/hoje")

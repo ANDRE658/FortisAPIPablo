@@ -18,9 +18,13 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // 1. Gere uma chave secreta segura (ex: https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator)
-    // NÃO DEIXE ESSA CHAVE EXPOSTA NO CÓDIGO EM PRODUÇÃO. Use o application.properties.
-    private static final String SECRET_KEY = "SuaChaveSecretaMuitoLongaESeguraAquiParaAssinarOJWT";
+    // --- INÍCIO DA CORREÇÃO ---
+    // Coloque a mesma chave que está no seu JwtUtil.java
+    // Esta chave precisa ser decodificada de Base64
+    private static final String SECRET_KEY = "Zm9ydGlzX3NlY3JldF9rZXlfc3VwZXJfc2VndXJhXzEyMzQ1X3ByZWNpc2Ffc2VyX211aXRvX2xvbmdhX3BhcmFfZnVuY2lvbmFyX2NvcnJldGFtZW50ZQ==";
+    // A string acima é a sua chave do JwtUtil ("fortis_secret_key...") convertida para Base64, que é o que o método getSignInKey() espera.
+    // --- FIM DA CORREÇÃO ---
+
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 horas
 
     public String extractUsername(String token) {

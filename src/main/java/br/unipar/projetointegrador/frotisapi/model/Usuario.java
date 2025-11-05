@@ -22,8 +22,10 @@ public class Usuario implements UserDetails {
     private String login; // Pode ser o email ou um username
     private String senha;
 
-    @Enumerated(EnumType.ORDINAL) // <-- MUDE PARA .ORDINAL
+    // --- INÍCIO DA CORREÇÃO ---
+    @Enumerated(EnumType.STRING) // <-- MUDE DE .ORDINAL PARA .STRING
     private Role role;
+    // --- FIM DA CORREÇÃO ---
 
     // Opcional: Se um Usuário DEVE ser um Instrutor
     @OneToOne
