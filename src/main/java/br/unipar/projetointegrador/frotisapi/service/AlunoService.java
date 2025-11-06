@@ -91,8 +91,8 @@ public class AlunoService {
     }
 
     public List<Aluno> listarTodos() {
-        return alunoRepository.findAll();
-    }
+        return alunoRepository.findAllWithMatriculasAndPlanos(); // Para isto
+    }//    }
 
     // Este método 'atualizar' ainda não mexe na matrícula,
     // mas a lógica de 'salvar' (novo cadastro) está completa.
