@@ -1,44 +1,40 @@
 package br.unipar.projetointegrador.frotisapi.service;
 
 import br.unipar.projetointegrador.frotisapi.dto.TreinoDTO;
-import br.unipar.projetointegrador.frotisapi.dto.TreinoRequestDTO;
-import br.unipar.projetointegrador.frotisapi.model.Aluno;
-import br.unipar.projetointegrador.frotisapi.model.Exercicio;
-import br.unipar.projetointegrador.frotisapi.model.Instrutor;
+import br.unipar.projetointegrador.frotisapi.dto.TreinoRequestDTO; // Importe este
+import br.unipar.projetointegrador.frotisapi.model.Aluno;         // Importe este
+import br.unipar.projetointegrador.frotisapi.model.Instrutor;   // Importe este
 import br.unipar.projetointegrador.frotisapi.model.Treino;
-import br.unipar.projetointegrador.frotisapi.repository.AlunoRepository;
-import br.unipar.projetointegrador.frotisapi.repository.InstrutorRepository;
+import br.unipar.projetointegrador.frotisapi.repository.AlunoRepository;      // Importe este
+import br.unipar.projetointegrador.frotisapi.repository.InstrutorRepository;  // Importe este
 import br.unipar.projetointegrador.frotisapi.repository.TreinoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.HashSet; // Importe este
 import java.util.List;
-import java.util.Set;
+import java.util.Set; // Importe este
 
 @Service
 public class TreinoService {
 
     private final TreinoRepository treinoRepository;
-    private final AlunoRepository alunoRepository; // <-- ADICIONE
-    private final InstrutorRepository instrutorRepository; // <-- ADICIONE
+    private final AlunoRepository alunoRepository;         // Mantenha este
+    private final InstrutorRepository instrutorRepository; // Mantenha este
 
-    public TreinoService(TreinoRepository treinoRepository, AlunoRepository alunoRepository, InstrutorRepository instrutorRepository) {
+    // Mantenha o construtor completo
+    public TreinoService(TreinoRepository treinoRepository,
+                         AlunoRepository alunoRepository,
+                         InstrutorRepository instrutorRepository) {
         this.treinoRepository = treinoRepository;
         this.alunoRepository = alunoRepository;
         this.instrutorRepository = instrutorRepository;
     }
 
-    public Treino save(Treino treino) {
-        if (treino.getExercicios() != null) {
-            for (Exercicio exercicio : treino.getExercicios()) {
-                exercicio.setTreino(treino);
-            }
-        }
-        return treinoRepository.save(treino);
-    }
-    // NOVO MÉTODO: Crie este novo método 'save' que aceita o DTO
+    // Este é o método que você está usando na API (está correto)
+    @Transactional // É bom adicionar isso
     public Treino save(TreinoRequestDTO dto) throws Exception {
         // 1. Buscar as entidades (Aluno e Instrutor) pelos IDs
         Aluno aluno = alunoRepository.findById(dto.getAlunoId())
@@ -47,13 +43,13 @@ public class TreinoService {
         Instrutor instrutor = instrutorRepository.findById(dto.getInstrutorId())
                 .orElseThrow(() -> new Exception("Instrutor não encontrado"));
 
-        // 2. Criar a nova entidade Treino
+        // 2. Criar a nova entidade Treino (Ficha/Dia)
         Treino novoTreino = new Treino();
         novoTreino.setNome(dto.getNome());
         novoTreino.setDiaSemana(dto.getDiaSemana());
         novoTreino.setInstrutor(instrutor);
 
-        // 3. Associar o aluno (lembrando que 'alunos' é um Set)
+        // 3. Associar o aluno
         Set<Aluno> alunos = new HashSet<>();
         alunos.add(aluno);
         novoTreino.setAlunos(alunos);
@@ -61,6 +57,25 @@ public class TreinoService {
         // 4. Salvar o novo treino
         return treinoRepository.save(novoTreino);
     }
+
+    // --- INÍCIO DA CORREÇÃO ---
+    // Este é o método que está causando o erro de compilação
+    public Treino save(Treino treino) {
+
+        // Remova este bloco inteiro, pois 'getExercicios' não existe mais
+        /*
+        if (treino.getExercicios() != null) {
+            for (Exercicio exercicio : treino.getExercicios()) {
+                exercicio.setTreino(treino);
+            }
+        }
+        */
+
+        // O método agora apenas salva
+        return treinoRepository.save(treino);
+    }
+    // --- FIM DA CORREÇÃO ---
+
 
     /**
      * CORREÇÃO CERTEIRA:

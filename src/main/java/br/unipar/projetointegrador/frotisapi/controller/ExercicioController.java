@@ -1,7 +1,9 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 import br.unipar.projetointegrador.frotisapi.dto.ExercicioDTO;
+import br.unipar.projetointegrador.frotisapi.model.Exercicio;
 import br.unipar.projetointegrador.frotisapi.service.ExercicioService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +35,18 @@ public class ExercicioController {
     @GetMapping("/listar")
     public ResponseEntity<List<ExercicioDTO>> listarExercicios() {
         return ResponseEntity.ok(exercicioService.listarTodos());
+    }
+
+    @PostMapping("/salvar")
+    public ResponseEntity<Exercicio> salvarExercicioNoCatalogo(@RequestBody ExercicioDTO dto) {
+        try {
+            // Chama o método que criamos no Service
+            Exercicio novoExercicio = exercicioService.salvarNovoExercicioNoCatalogo(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoExercicio);
+        } catch (Exception e) {
+            // Retorna 400 Bad Request se algo der errado (ex: nome duplicado)
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }

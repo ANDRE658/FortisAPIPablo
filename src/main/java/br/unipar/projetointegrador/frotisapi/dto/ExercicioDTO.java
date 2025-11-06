@@ -10,8 +10,6 @@ public class ExercicioDTO {
 
     private Long id;
     private String nome;
-    private int series;
-    private int repeticoes;
 
     // Construtor vazio
     public ExercicioDTO() {
@@ -21,22 +19,17 @@ public class ExercicioDTO {
     public ExercicioDTO(Exercicio exercicio) {
         this.id = exercicio.getId();
         this.nome = exercicio.getNome();
-        this.series = exercicio.getSeries();
-        this.repeticoes = exercicio.getRepeticoes();
+
     }
 
     /**
-     * NOVO MÉTODO (Melhor Prática):
-     * Converte este DTO (dados que vêm do cliente) para uma Entidade
-     * que pode ser salva no banco.
+     * Converte este DTO para uma Entidade
      */
     public Exercicio toEntity() {
         Exercicio entidade = new Exercicio();
         entidade.setId(this.id);
         entidade.setNome(this.nome);
-        entidade.setSeries(this.series);
-        entidade.setRepeticoes(this.repeticoes);
-        // O 'treino' será vinculado lá no Service
+
         return entidade;
     }
 }

@@ -6,33 +6,29 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List; // Importação necessária
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface TreinoRepository extends JpaRepository<Treino, Long> {
 
-    /**
-     * Esta consulta agora funciona (busca 1 List e 1 Set).
-     * Ela corrige o erro 404 ao ADICIONAR e DELETAR exercícios.
-     */
+    // Estes métodos estão CORRETOS e sendo usados
     @Query("SELECT DISTINCT t FROM Treino t " +
-            "LEFT JOIN FETCH t.exercicios " +
+            "LEFT JOIN FETCH t.itensTreino " +
             "LEFT JOIN FETCH t.alunos " +
             "WHERE t.id = :id")
     Optional<Treino> findTreinoCompletoById(@Param("id") Long id);
 
-    /**
-     * Esta consulta também funciona agora.
-     * Ela corrige o "Falha ao buscar treino de hoje".
-     */
-    @Query("SELECT t FROM Treino t LEFT JOIN FETCH t.exercicios LEFT JOIN FETCH t.alunos WHERE t.diaSemana = :diaSemana")
+    @Query("SELECT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos WHERE t.diaSemana = :diaSemana")
     Optional<Treino> findTreinoCompletoByDiaSemana(@Param("diaSemana") String diaSemana);
 
-    /**
-     * Esta consulta também funciona agora.
-     * Ela corrige o "Falha ao buscar a lista de treinos" (na tela Home).
-     */
-    @Query("SELECT DISTINCT t FROM Treino t LEFT JOIN FETCH t.exercicios LEFT JOIN FETCH t.alunos")
+    @Query("SELECT DISTINCT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos")
     List<Treino> findAllTreinosCompletos();
+
+    // --- INÍCIO DA CORREÇÃO ---
+    // Remova ou comente este método. Ele é o que está causando o crash da API.
+    /*
+    Optional<Treino> findByFichaTreino_IdAndDiaSemana(Long fichaTreinoId, String diaSemana);
+    */
+    // --- FIM DA CORREÇÃO ---
 }
