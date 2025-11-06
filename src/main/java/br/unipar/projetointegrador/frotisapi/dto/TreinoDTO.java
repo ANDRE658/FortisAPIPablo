@@ -13,16 +13,24 @@ public class TreinoDTO {
     private Long id;
     private String nome;
     private String diaSemana;
-    private List<ExercicioDTO> exercicios;
+
+    // --- INÍCIO DA CORREÇÃO ---
+    // Mude o tipo da lista de ExercicioDTO para o novo ItemTreinoResponseDTO
+    private List<ItemTreinoResponseDTO> itensTreino;
+    // --- FIM DA CORREÇÃO ---
+
 
     // Construtor que converte a Entidade para DTO
     public TreinoDTO(Treino treino) {
         this.id = treino.getId();
         this.nome = treino.getNome();
         this.diaSemana = treino.getDiaSemana();
-        // Converte a lista de Entidades Exercicio para uma lista de ExercicioDTO
-        this.exercicios = treino.getExercicios().stream()
-                .map(ExercicioDTO::new)
+
+        // --- INÍCIO DA CORREÇÃO ---
+        // Agora, converte a lista de Item_treino para uma lista de ItemTreinoResponseDTO
+        this.itensTreino = treino.getItensTreino().stream() // <-- Use o novo getter: getItensTreino()
+                .map(ItemTreinoResponseDTO::new) // <-- Use o novo DTO de resposta
                 .collect(Collectors.toList());
+        // --- FIM DA CORREÇÃO ---
     }
 }

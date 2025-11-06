@@ -5,9 +5,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet; // <-- MUDANÇA (importar Set)
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set; // <-- MUDANÇA (importar Set)
+import java.util.Set;
 
 @Entity
 @Getter
@@ -26,11 +27,13 @@ public class Treino {
     @JsonIgnore
     private Instrutor instrutor;
 
-    // <-- MUDANÇA: "List<Aluno>" virou "Set<Aluno>"
     @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Aluno> alunos = new HashSet<>(); // <-- MUDANÇA
+    private Set<Aluno> alunos = new HashSet<>();
 
-    // A lista de exercícios pode continuar sendo uma List
-    @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Exercicio> exercicios;
+
+    // Adicione a lista de ItemTreino
+    @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemTreino> itensTreino;
+
+
 }

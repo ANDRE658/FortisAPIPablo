@@ -8,7 +8,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Item_treino {
+public class ItemTreino {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

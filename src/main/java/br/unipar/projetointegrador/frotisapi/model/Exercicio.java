@@ -16,12 +16,5 @@ public class Exercicio {
     private Long id;
 
     private String nome;
-    private int series;
-    private int repeticoes;
-
-    @JsonBackReference("exercicio-treino") //evita loop infinito no JSON
-    @ManyToOne //muitos exercícios pertencem a Um treino
-    @JoinColumn(name = "treino_id") //chave estrangeira
-    private Treino treino;
 
 }
