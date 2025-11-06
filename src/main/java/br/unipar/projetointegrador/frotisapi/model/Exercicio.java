@@ -1,10 +1,9 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+// Remova as importações de JsonBackReference e List
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Entity
 @Getter
@@ -16,6 +15,5 @@ public class Exercicio {
     private Long id;
 
     private String nome;
-
 
 }

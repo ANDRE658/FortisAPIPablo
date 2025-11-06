@@ -1,15 +1,14 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 import br.unipar.projetointegrador.frotisapi.dto.ExercicioDTO;
-import br.unipar.projetointegrador.frotisapi.model.Exercicio;
+import br.unipar.projetointegrador.frotisapi.model.Exercicio; // <-- IMPORTE O MODEL
 import br.unipar.projetointegrador.frotisapi.service.ExercicioService;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus; // <-- IMPORTE O STATUS
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@CrossOrigin(origins = "*") // 2. ADICIONE ESTA LINHA
-
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/exercicio")
 public class ExercicioController {
@@ -24,29 +23,29 @@ public class ExercicioController {
     public ResponseEntity<Void> deletarExercicio(@PathVariable Long id) {
         try {
             exercicioService.deleteById(id);
-            return ResponseEntity.noContent().build(); // 204 No Content
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            // Se o ID não for encontrado (baseado na lógica do service)
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            return ResponseEntity.notFound().build();
         }
     }
-
 
     @GetMapping("/listar")
     public ResponseEntity<List<ExercicioDTO>> listarExercicios() {
         return ResponseEntity.ok(exercicioService.listarTodos());
     }
 
+    // --- INÍCIO DA CORREÇÃO ---
+    // Este é o endpoint para 'CadastroExercicio.html'
     @PostMapping("/salvar")
     public ResponseEntity<Exercicio> salvarExercicioNoCatalogo(@RequestBody ExercicioDTO dto) {
         try {
-            // Chama o método que criamos no Service
+            // Chama o método que salva SÓ o nome
             Exercicio novoExercicio = exercicioService.salvarNovoExercicioNoCatalogo(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoExercicio);
         } catch (Exception e) {
-            // Retorna 400 Bad Request se algo der errado (ex: nome duplicado)
             return ResponseEntity.badRequest().build();
         }
     }
+
 
 }

@@ -2,9 +2,8 @@ package br.unipar.projetointegrador.frotisapi.service;
 
 import br.unipar.projetointegrador.frotisapi.dto.ExercicioDTO;
 import br.unipar.projetointegrador.frotisapi.model.Exercicio;
-// Remova a importação de Treino
+// Remova as importações de Treino e TreinoRepository
 import br.unipar.projetointegrador.frotisapi.repository.ExercicioRepository;
-import br.unipar.projetointegrador.frotisapi.repository.TreinoRepository; // Pode remover esta importação
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,29 +13,22 @@ import java.util.stream.Collectors;
 public class ExercicioService {
 
     private final ExercicioRepository exercicioRepository;
-    // Remova o TreinoRepository daqui
-    // private final TreinoRepository treinoRepository;
 
-    // Atualize o construtor
+    // --- CORREÇÃO ---
+    // Remova o TreinoRepository do construtor
     public ExercicioService(ExercicioRepository exercicioRepository) {
         this.exercicioRepository = exercicioRepository;
-        // this.treinoRepository = treinoRepository; // Remova esta linha
     }
 
-    /**
-     * OK: Este método lista o CATÁLOGO de exercícios. Está correto.
-     */
+    // OK: Lista o catálogo
     public List<ExercicioDTO> listarTodos() {
         List<Exercicio> entidades = exercicioRepository.findAll();
-
         return entidades.stream()
                 .map(ExercicioDTO::new)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * OK: Este método deleta um exercício do CATÁLOGO. Está correto.
-     */
+    // OK: Deleta do catálogo
     public void deleteById(Long id) {
         if (!exercicioRepository.existsById(id)) {
             throw new RuntimeException("Exercício com ID " + id + " não encontrado.");
@@ -44,14 +36,16 @@ public class ExercicioService {
         exercicioRepository.deleteById(id);
     }
 
+    // --- CORREÇÃO ---
+    // Remova o método 'salvarExercicio(Long treinoId, ...)'
+
     /**
-     * Opcional: Adicione um método para salvar NOVOS exercícios
-     * no CATÁLOGO (ex: "Rosca Martelo"), se precisar.
+     * Este é o método CORRETO para salvar um novo exercício no CATÁLOGO.
+     * (Usado pelo CadastroExercicio.html)
      */
     public Exercicio salvarNovoExercicioNoCatalogo(ExercicioDTO dto) {
         Exercicio novoExercicio = new Exercicio();
-        novoExercicio.setNome(dto.getNome());
-        // (Não definimos series/reps aqui, pois é um catálogo)
+        novoExercicio.setNome(dto.getNome()); // Salva apenas o nome
         return exercicioRepository.save(novoExercicio);
     }
 }

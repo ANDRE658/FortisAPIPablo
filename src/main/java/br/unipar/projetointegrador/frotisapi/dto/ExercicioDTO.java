@@ -11,7 +11,6 @@ public class ExercicioDTO {
     private Long id;
     private String nome;
 
-    // Construtor vazio
     public ExercicioDTO() {
     }
 
