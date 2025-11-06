@@ -33,18 +33,28 @@ public class AlunoController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Aluno> salvarAluno(@RequestBody AlunoRequestDTO dto) { // 2. MUDE O PARÂMETRO
-        // 3. Converta o DTO e passe a senha para o serviço
+    public ResponseEntity<Aluno> salvarAluno(@RequestBody AlunoRequestDTO dto) {
         Aluno aluno = dto.toEntity();
         String senha = dto.getSenha();
+        Long planoId = dto.getPlanoId(); // Pega o ID do plano
 
+        // --- INÍCIO DA CORREÇÃO ---
+        // O método 'salvar' agora pode lançar uma 'Exception' (se o planoId for inválido)
+        // Precisamos de um 'try...catch' para capturá-la.
         try {
-            Aluno alunoSalvo = alunoService.salvar(aluno, senha); // 4. CHAME O NOVO MÉTODO
+            Aluno alunoSalvo = alunoService.salvar(aluno, senha, planoId); // Esta é a linha 44
             return ResponseEntity.status(Response.SC_CREATED).body(alunoSalvo);
+
         } catch (IllegalArgumentException e) {
-            // Retorna 400 Bad Request se a senha estiver faltando
+            // Retorna 400 Bad Request se a senha ou plano estiverem faltando
             return ResponseEntity.badRequest().body(null);
+
+        } catch (Exception e) {
+            // Retorna 404 Not Found se o planoId não for encontrado
+            // (Este é o 'Exception' que o service lança)
+            return ResponseEntity.notFound().build();
         }
+        // --- FIM DA CORREÇÃO ---
     }
 
     @GetMapping("/buscar/{id}")

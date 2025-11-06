@@ -24,11 +24,13 @@ public class AlunoRequestDTO {
     // Campo de Senha
     private String senha;
 
+    private Long planoId;
+
     // Converte o DTO para a entidade Aluno
     public Aluno toEntity() {
         Aluno aluno = new Aluno();
         aluno.setNome(this.nome);
-        aluno.setCPF(this.CPF);
+        aluno.setCpf(this.CPF);
         aluno.setTelefone(this.telefone); // <-- CAMPO NOVO
         aluno.setEmail(this.email);
         aluno.setPeso(this.peso);

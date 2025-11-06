@@ -23,7 +23,7 @@ public class Aluno implements UserDetails {
     private String cpf;
     private String senha;
     private String email;
-    private Date data_nascimento;
+    private Date dataNascimento;
     private String telefone;
     private String sexo;
     private float altura;
@@ -73,9 +73,5 @@ public class Aluno implements UserDetails {
         return true;
     }
 
-    public void setDataNascimento(Date dataNascimento) {
-    }
 
-    public void setCPF(String cpf) {
-    }
 }
