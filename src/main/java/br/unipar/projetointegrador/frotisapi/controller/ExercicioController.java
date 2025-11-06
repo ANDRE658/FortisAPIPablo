@@ -47,5 +47,29 @@ public class ExercicioController {
         }
     }
 
+    /**
+     * Endpoint para buscar um exercício por ID (para preencher o formulário de edição)
+     */
+    @GetMapping("/buscar/{id}")
+    public ResponseEntity<ExercicioDTO> buscarExercicioPorID(@PathVariable Long id) {
+        ExercicioDTO dto = exercicioService.buscarPorId(id);
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Endpoint para atualizar um exercício existente
+     */
+    @PutMapping("/atualizar/{id}")
+    public ResponseEntity<Exercicio> atualizarExercicio(@PathVariable Long id, @RequestBody ExercicioDTO dto) {
+        Exercicio exercicioAtualizado = exercicioService.atualizar(id, dto);
+        if (exercicioAtualizado == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(exercicioAtualizado);
+    }
+
 
 }

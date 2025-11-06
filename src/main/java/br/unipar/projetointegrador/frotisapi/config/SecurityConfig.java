@@ -46,6 +46,7 @@ public class SecurityConfig {
                         // Rotas Públicas:
                         .requestMatchers("/auth/**").permitAll() // Endpoints de login e registro
                         .requestMatchers("/consulta-cep/**").permitAll() // Sua rota de CEP é pública
+                        .requestMatchers(HttpMethod.POST, "/instrutor/salvar").permitAll() // Permite o cadastro público
 
                         // Rotas do Gerenciador (Exemplos):
                         .requestMatchers("/instrutor/**").hasRole("GERENCIADOR") // Só Gerenciador mexe em instrutor

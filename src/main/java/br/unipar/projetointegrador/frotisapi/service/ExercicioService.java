@@ -48,4 +48,30 @@ public class ExercicioService {
         novoExercicio.setNome(dto.getNome()); // Salva apenas o nome
         return exercicioRepository.save(novoExercicio);
     }
+
+
+
+    /**
+     * Busca um exercício específico pelo ID.
+     */
+    public ExercicioDTO buscarPorId(Long id) {
+        Exercicio exercicio = exercicioRepository.findById(id).orElse(null);
+        if (exercicio != null) {
+            return new ExercicioDTO(exercicio); // Converte para DTO
+        }
+        return null;
+    }
+
+    /**
+     * Atualiza o nome de um exercício existente.
+     */
+    public Exercicio atualizar(Long id, ExercicioDTO dto) {
+        Exercicio exercicioExistente = exercicioRepository.findById(id).orElse(null);
+
+        if (exercicioExistente != null) {
+            exercicioExistente.setNome(dto.getNome()); // Atualiza o nome
+            return exercicioRepository.save(exercicioExistente);
+        }
+        return null;
+    }
 }
