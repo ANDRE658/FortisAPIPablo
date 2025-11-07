@@ -49,11 +49,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/instrutor/salvar").permitAll() // Permite o cadastro público
 
                         // Rotas do Gerenciador (Exemplos):
-                        .requestMatchers("/instrutor/**").hasRole("GERENCIADOR") // Só Gerenciador mexe em instrutor
+                        .requestMatchers(HttpMethod.DELETE, "/instrutor/**").hasRole("GERENCIADOR") // Só Gerenciador deleta
                         .requestMatchers(HttpMethod.DELETE, "/aluno/**").hasRole("GERENCIADOR") // Só Gerenciador deleta aluno
                         .requestMatchers(HttpMethod.DELETE, "/plano/**").hasRole("GERENCIADOR") // Só Gerenciador deleta plano
 
                         // Rotas do Instrutor ou Gerenciador (Exemplos):
+                        .requestMatchers("/instrutor/**").hasAnyRole("INSTRUTOR", "GERENCIADOR") // Instrutor e Gerenciador podem listar/ver
                         .requestMatchers("/aluno/**").hasAnyRole("INSTRUTOR", "GERENCIADOR") //
                         .requestMatchers("/treino/**").hasAnyRole("INSTRUTOR", "GERENCIADOR") //
                         .requestMatchers("/exercicio/**").hasAnyRole("INSTRUTOR", "GERENCIADOR") //
