@@ -1,7 +1,7 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 // Importações de Exercicio/ExercicioDTO foram removidas
-import br.unipar.projetointegrador.frotisapi.dto.TreinoRequestDTO;
+import br.unipar.projetointegrador.frotisapi.dto.DiaTreinoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.model.Treino;
 import br.unipar.projetointegrador.frotisapi.service.TreinoService;
 import br.unipar.projetointegrador.frotisapi.dto.TreinoDTO;
@@ -39,13 +39,13 @@ public class TreinoController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Treino> salvarTreino(@RequestBody TreinoRequestDTO dto) { // <-- MUDE AQUI
+    public ResponseEntity<Treino> salvarTreino(@RequestBody DiaTreinoRequestDTO dto) { // <-- MUDE O DTO
         try {
             Treino treinoSalvo = treinoService.save(dto); // <-- MUDE AQUI
             return ResponseEntity.status(HttpStatus.CREATED).body(treinoSalvo);
         } catch (Exception e) {
-            // Retorna 404 Not Found se o aluno ou instrutor não existirem
-            return ResponseEntity.notFound().build();
+            // Se a Ficha não for encontrada
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
@@ -68,6 +68,8 @@ public class TreinoController {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 
     // O MÉTODO "salvarExercicio" FOI REMOVIDO DAQUI.
     // O erro "cannot find symbol: exercicioService" está corrigido.

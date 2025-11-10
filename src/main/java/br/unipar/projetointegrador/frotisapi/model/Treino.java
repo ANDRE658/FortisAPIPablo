@@ -1,6 +1,8 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,19 +21,17 @@ public class Treino {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome;
-    private String diaSemana;
+    private String diaSemana; // "SEGUNDA", "TERCA", etc. (Isso fica)
 
+
+    @JsonBackReference("ficha-dias") // O MESMO "apelido"
     @ManyToOne
-    @JoinColumn(name = "instrutor_id")
-    @JsonIgnore
-    private Instrutor instrutor;
-
-    @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Aluno> alunos = new HashSet<>();
+    @JoinColumn(name = "ficha_treino_id")
+    private FichaTreino fichaTreino;
 
 
-    // Adicione a lista de ItemTreino
+    // --- ADICIONE A ANOTAÇÃO AQUI ---
+    @JsonManagedReference("treino-itens") // "Apelido" da relação
     @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemTreino> itensTreino;
 

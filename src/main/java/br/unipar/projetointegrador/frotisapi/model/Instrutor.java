@@ -1,5 +1,6 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,9 @@ public class Instrutor {
     @JoinColumn(name = "endereco_id") // <-- ADICIONE ESTA LINHA
     private Endereco endereco;
 
+
+    // --- ADICIONE A ANOTAÇÃO AQUI ---
+    @JsonManagedReference("instrutor-fichas") // "Apelido" da relação
     @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Treino> treinosSupervisionados;
+    private List<FichaTreino> fichasSupervisionadas;
 }

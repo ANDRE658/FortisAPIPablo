@@ -12,23 +12,38 @@ import java.util.Optional;
 @Repository
 public interface TreinoRepository extends JpaRepository<Treino, Long> {
 
-    // Estes métodos estão CORRETOS e sendo usados
+    // --- INÍCIO DA CORREÇÃO ---
+
+    // Consulta Antiga (COM ERRO):
+    // @Query("SELECT DISTINCT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos WHERE t.id = :id")
+    // Consulta Nova (CORRIGIDA):
     @Query("SELECT DISTINCT t FROM Treino t " +
             "LEFT JOIN FETCH t.itensTreino " +
-            "LEFT JOIN FETCH t.alunos " +
+            "LEFT JOIN FETCH t.fichaTreino f " + // Busca a ficha...
+            "LEFT JOIN FETCH f.aluno " +          // ...e o aluno da ficha
             "WHERE t.id = :id")
     Optional<Treino> findTreinoCompletoById(@Param("id") Long id);
 
-    @Query("SELECT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos WHERE t.diaSemana = :diaSemana")
+
+    // Consulta Antiga (COM ERRO):
+    // @Query("SELECT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos WHERE t.diaSemana = :diaSemana")
+    // Consulta Nova (CORRIGIDA):
+    @Query("SELECT t FROM Treino t " +
+            "LEFT JOIN FETCH t.itensTreino " +
+            "LEFT JOIN FETCH t.fichaTreino f " +
+            "LEFT JOIN FETCH f.aluno " +
+            "WHERE t.diaSemana = :diaSemana")
     Optional<Treino> findTreinoCompletoByDiaSemana(@Param("diaSemana") String diaSemana);
 
-    @Query("SELECT DISTINCT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos")
+
+    // Consulta Antiga (COM ERRO):
+    // @Query("SELECT DISTINCT t FROM Treino t LEFT JOIN FETCH t.itensTreino LEFT JOIN FETCH t.alunos")
+    // Consulta Nova (CORRIGIDA):
+    @Query("SELECT DISTINCT t FROM Treino t " +
+            "LEFT JOIN FETCH t.itensTreino " +
+            "LEFT JOIN FETCH t.fichaTreino f " +
+            "LEFT JOIN FETCH f.aluno")
     List<Treino> findAllTreinosCompletos();
 
-    // --- INÍCIO DA CORREÇÃO ---
-    // Remova ou comente este método. Ele é o que está causando o crash da API.
-    /*
-    Optional<Treino> findByFichaTreino_IdAndDiaSemana(Long fichaTreinoId, String diaSemana);
-    */
     // --- FIM DA CORREÇÃO ---
 }

@@ -1,5 +1,6 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,8 +18,9 @@ public class ItemTreino {
     /**
      * Muitos Itens de Treino (@ManyToOne) pertencem a UM Treino.
      */
+    @JsonBackReference("treino-itens") // O MESMO "apelido"
     @ManyToOne
-    @JoinColumn(name = "treino_id") // Define o nome da coluna da chave estrangeira
+    @JoinColumn(name = "treino_id")
     private Treino treino;
 
     /**
