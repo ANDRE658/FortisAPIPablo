@@ -23,6 +23,7 @@ public class Treino {
 
     private String diaSemana; // "SEGUNDA", "TERCA", etc. (Isso fica)
 
+    private String nome;
 
     @JsonBackReference("ficha-dias") // O MESMO "apelido"
     @ManyToOne

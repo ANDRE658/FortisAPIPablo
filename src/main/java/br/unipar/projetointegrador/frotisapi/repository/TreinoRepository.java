@@ -45,5 +45,10 @@ public interface TreinoRepository extends JpaRepository<Treino, Long> {
             "LEFT JOIN FETCH f.aluno")
     List<Treino> findAllTreinosCompletos();
 
-    // --- FIM DA CORREÇÃO ---
+
+    @Query("SELECT DISTINCT t FROM Treino t " +
+            "LEFT JOIN FETCH t.itensTreino i " +
+            "LEFT JOIN FETCH i.exercicio " +
+            "WHERE t.id IN :treinoIds")
+    List<Treino> findTreinosCompletosByIds(@Param("treinoIds") List<Long> treinoIds);
 }

@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class FichaTreinoRequestDTO {
-    private String nome;
     private Long alunoId;
     private Long instrutorId;
 }

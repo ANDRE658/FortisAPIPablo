@@ -32,22 +32,17 @@ public class TreinoService {
     }
     // --- FIM DA CORREÇÃO ---
 
-    /**
-     * Este é o novo método save.
-     * Ele recebe o ID da Ficha-Pai e o Dia da Semana.
-     */
     @Transactional
     public Treino save(DiaTreinoRequestDTO dto) throws Exception {
-        // 1. Buscar a Ficha-Pai (AGORA VAI FUNCIONAR)
+        // ... (busca pela FichaTreino continua igual) ...
         FichaTreino ficha = fichaTreinoRepository.findById(dto.getFichaId())
                 .orElseThrow(() -> new Exception("Ficha de Treino não encontrada"));
 
-        // 2. Criar a nova entidade Treino (Dia)
         Treino novoDiaDeTreino = new Treino();
         novoDiaDeTreino.setDiaSemana(dto.getDiaSemana());
-        novoDiaDeTreino.setFichaTreino(ficha); // Linka com a Ficha-Pai
+        novoDiaDeTreino.setFichaTreino(ficha);
+        novoDiaDeTreino.setNome(dto.getNome()); // <-- ADICIONE ESTA LINHA
 
-        // 3. Salvar o novo dia
         return treinoRepository.save(novoDiaDeTreino);
     }
 

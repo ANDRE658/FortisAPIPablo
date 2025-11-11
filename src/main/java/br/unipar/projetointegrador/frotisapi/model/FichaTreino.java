@@ -19,8 +19,6 @@ public class FichaTreino {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome; // "Upper/Lower", "Treino de Braço", etc.
-
     @ManyToOne
     @JoinColumn(name = "aluno_id")
     private Aluno aluno;
