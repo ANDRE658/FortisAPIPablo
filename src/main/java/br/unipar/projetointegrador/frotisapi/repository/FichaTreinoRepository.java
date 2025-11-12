@@ -12,15 +12,11 @@ import java.util.Optional;
 @Repository
 public interface FichaTreinoRepository extends JpaRepository<FichaTreino, Long> {
 
-    // (Mude o nome de findFichaCompletaById para findFichaComDiasById)
     @Query("SELECT f FROM FichaTreino f " +
             "LEFT JOIN FETCH f.aluno " +
             "LEFT JOIN FETCH f.instrutor " +
-            "LEFT JOIN FETCH f.diasDeTreino d " +
-            // "LEFT JOIN FETCH d.itensTreino i " + // <-- REMOVA/COMENTE ESTA LINHA
-            // "LEFT JOIN FETCH i.exercicio " +     // <-- REMOVA/COMENTE ESTA LINHA
             "WHERE f.id = :id")
-    Optional<FichaTreino> findFichaComDiasById(@Param("id") Long id); // <-- MUDE O NOME DO MÉTODO AQUI
+    Optional<FichaTreino> findFichaComDiasById(@Param("id") Long id);
 
     // --- ADICIONE ESTE MÉTODO NOVO ---
     @Query("SELECT DISTINCT f FROM FichaTreino f LEFT JOIN FETCH f.aluno")

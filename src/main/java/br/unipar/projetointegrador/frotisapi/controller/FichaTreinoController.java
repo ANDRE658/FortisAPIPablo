@@ -2,6 +2,7 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 // ... (Imports: FichaTreino, FichaTreinoRequestDTO, FichaTreinoService, ...)
+import br.unipar.projetointegrador.frotisapi.dto.FichaCompletaRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.FichaTreinoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.model.FichaTreino;
 import br.unipar.projetointegrador.frotisapi.service.FichaTreinoService;
@@ -48,5 +49,35 @@ public class FichaTreinoController {
             return ResponseEntity.noContent().build(); // Retorna 204 se a lista for vazia
         }
         return ResponseEntity.ok(fichas);
+    }
+
+    /**
+     * NOVO ENDPOINT: Recebe o JSON completo da ficha, dias e exercícios.
+     */
+    @PostMapping("/salvar-completa")
+    public ResponseEntity<FichaTreino> salvarFichaCompleta(@RequestBody FichaCompletaRequestDTO dto) {
+        try {
+            FichaTreino fichaSalva = fichaTreinoService.salvarFichaCompleta(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(fichaSalva);
+        } catch (Exception e) {
+            // Se Aluno, Instrutor ou Exercício não forem encontrados
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    /**
+     * NOVO ENDPOINT: Atualiza uma ficha completa
+     */
+    @PutMapping("/atualizar-completa/{id}")
+    public ResponseEntity<FichaTreino> atualizarFichaCompleta(
+            @PathVariable Long id,
+            @RequestBody FichaCompletaRequestDTO dto) {
+        try {
+            FichaTreino fichaAtualizada = fichaTreinoService.atualizarFichaCompleta(id, dto);
+            return ResponseEntity.ok(fichaAtualizada); // Retorna 200 OK
+        } catch (Exception e) {
+            // Se Ficha, Aluno ou Exercício não forem encontrados
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }
