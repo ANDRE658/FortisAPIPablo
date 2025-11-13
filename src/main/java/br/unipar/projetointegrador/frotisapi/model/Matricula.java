@@ -23,8 +23,8 @@ public class Matricula {
     @JoinColumn(name = "aluno_id") // Cria a coluna da chave estrangeira no banco
     private Aluno aluno;
 
-    @JsonBackReference // Evita o loop no JSON
+    // Removemos o @JsonBackReference para o plano aparecer no JSON
     @ManyToOne
-    @JoinColumn(name = "plano_id") // Cria a coluna da chave estrangeira no banco
+    @JoinColumn(name = "plano_id")
     private Plano plano;
 }

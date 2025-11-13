@@ -1,6 +1,7 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference; // IMPORTE ISTO
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore; // <--- IMPORTE ISTO (Novo)
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,18 +31,28 @@ public class Aluno implements UserDetails {
     private String sexo;
     private float altura;
     private float peso;
+    private Boolean ativo = true;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dataCadastro = new Date(); // Inicializa com a data atual
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "endereco_id") // <-- ADICIONE ESTA LINHA
+    @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
     @JsonBackReference("aluno-treino")
     @ManyToOne
     private Treino treino;
 
-    @OneToMany(mappedBy = "aluno", fetch = FetchType.LAZY)
-    @JsonManagedReference("aluno-matriculas") // (O "apelido" que já estava em Matricula.java)
+    @OneToMany(mappedBy = "aluno", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("aluno-matriculas")
     private List<Matricula> matriculaList;
+
+    // --- ADICIONE ISTO PARA CORRIGIR O ERRO DE EXCLUSÃO ---
+    // Isso diz ao banco: "Se apagar o Aluno, apague também as Fichas de Treino dele"
+    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Evita loop infinito no JSON
+    private List<FichaTreino> fichasTreino;
+    // ------------------------------------------------------
 
     // --- MÉTODOS USERDETAILS ---
     @Override
@@ -78,6 +89,4 @@ public class Aluno implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-
 }

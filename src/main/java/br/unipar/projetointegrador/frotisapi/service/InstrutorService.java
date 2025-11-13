@@ -103,16 +103,21 @@ public class InstrutorService {
         return instrutorRepository.save(instrutorExistente);
     }
 
-    public void deletar(Long id) {
-        instrutorRepository.deleteById(id);
-    }
-
+    // Atualize este método para usar findAllByAtivoTrue()
     public List<InstrutorListDTO> listarTodos() {
-        List<Instrutor> instrutores = instrutorRepository.findAll();
+        List<Instrutor> instrutores = instrutorRepository.findAllByAtivoTrue(); // <-- MUDANÇA AQUI
 
-        // Converte a lista de Entidades (Instrutor) para DTOs (InstrutorListDTO)
         return instrutores.stream()
                 .map(InstrutorListDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    // Adicione este método de exclusão lógica
+    public void excluir(Long id) {
+        Instrutor instrutor = instrutorRepository.findById(id).orElse(null);
+        if (instrutor != null) {
+            instrutor.setAtivo(false); // Marca como inativo
+            instrutorRepository.save(instrutor);
+        }
     }
 }

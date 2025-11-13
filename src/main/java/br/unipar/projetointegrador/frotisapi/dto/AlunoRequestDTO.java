@@ -26,17 +26,20 @@ public class AlunoRequestDTO {
 
     private Long planoId;
 
-    // Converte o DTO para a entidade Aluno
     public Aluno toEntity() {
         Aluno aluno = new Aluno();
         aluno.setNome(this.nome);
-        aluno.setCpf(this.CPF);
-        aluno.setTelefone(this.telefone); // <-- CAMPO NOVO
+
+        // --- ALTERAÇÃO AQUI: Limpa a formatação (mantém só números) ---
+        aluno.setCpf(this.CPF != null ? this.CPF.replaceAll("[^0-9]", "") : null);
+        aluno.setTelefone(this.telefone != null ? this.telefone.replaceAll("[^0-9]", "") : null);
+        // --------------------------------------------------------------
+
         aluno.setEmail(this.email);
         aluno.setPeso(this.peso);
         aluno.setAltura(this.altura);
         aluno.setDataNascimento(this.dataNascimento);
-        aluno.setSexo(this.sexo); // <-- CAMPO NOVO
+        aluno.setSexo(this.sexo);
         aluno.setEndereco(this.endereco);
         return aluno;
     }

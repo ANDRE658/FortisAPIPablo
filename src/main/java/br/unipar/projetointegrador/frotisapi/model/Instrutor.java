@@ -23,13 +23,14 @@ public class Instrutor {
     private String email;
     private String sexo;
 
+    // --- NOVO CAMPO ---
+    private Boolean ativo = true;
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "endereco_id") // <-- ADICIONE ESTA LINHA
+    @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-
-    // --- ADICIONE A ANOTAÇÃO AQUI ---
-    @JsonManagedReference("instrutor-fichas") // "Apelido" da relação
+    @JsonManagedReference("instrutor-fichas")
     @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FichaTreino> fichasSupervisionadas;
 }

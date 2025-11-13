@@ -1,9 +1,11 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 import br.unipar.projetointegrador.frotisapi.dto.AlunoRequestDTO;
+import br.unipar.projetointegrador.frotisapi.dto.DashboardStatsDTO;
 import br.unipar.projetointegrador.frotisapi.model.Aluno;
 import br.unipar.projetointegrador.frotisapi.service.AlunoService;
 import org.apache.catalina.connector.Response;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,28 +35,40 @@ public class AlunoController {
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<Aluno> salvarAluno(@RequestBody AlunoRequestDTO dto) {
-        Aluno aluno = dto.toEntity();
-        String senha = dto.getSenha();
-        Long planoId = dto.getPlanoId(); // Pega o ID do plano
-
-        // --- INÍCIO DA CORREÇÃO ---
-        // O método 'salvar' agora pode lançar uma 'Exception' (se o planoId for inválido)
-        // Precisamos de um 'try...catch' para capturá-la.
+    public ResponseEntity<?> salvarAluno(@RequestBody AlunoRequestDTO dto) { // Use <?> para flexibilidade
         try {
-            Aluno alunoSalvo = alunoService.salvar(aluno, senha, planoId); // Esta é a linha 44
-            return ResponseEntity.status(Response.SC_CREATED).body(alunoSalvo);
+            // ... conversão do DTO ...
+            Aluno aluno = dto.toEntity();
+            String senha = dto.getSenha();
+            Long planoId = dto.getPlanoId();
+
+            Aluno alunoSalvo = alunoService.salvar(aluno, senha, planoId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(alunoSalvo);
 
         } catch (IllegalArgumentException e) {
-            // Retorna 400 Bad Request se a senha ou plano estiverem faltando
-            return ResponseEntity.badRequest().body(null);
-
+            // AQUI ESTÁ O SEGREDO: Retorna a mensagem de erro do Service
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            // Retorna 404 Not Found se o planoId não for encontrado
-            // (Este é o 'Exception' que o service lança)
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno: " + e.getMessage());
         }
-        // --- FIM DA CORREÇÃO ---
+    }
+
+    @PutMapping("/atualizar/{id}")
+    public ResponseEntity<?> atualizarAluno(@PathVariable Long id, @RequestBody AlunoRequestDTO dto) {
+        try {
+            // Passamos o DTO direto para o serviço
+            Aluno aluno = alunoService.atualizar(id, dto);
+
+            if (aluno == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(aluno);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erro ao atualizar: " + e.getMessage());
+        }
     }
 
     @GetMapping("/buscar/{id}")
@@ -68,21 +82,21 @@ public class AlunoController {
         return ResponseEntity.ok(aluno);
     }
 
-    @DeleteMapping("/deletar/{id}")
-    public ResponseEntity<Void> deletarAluno(@PathVariable Long id) {
-        alunoService.deletar(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/excluir/{id}") // NOVO ENDPOINT DE EXCLUSÃO
+    public ResponseEntity<String> excluirAluno(@PathVariable Long id) {
+        try {
+            alunoService.excluir(id);
+            return ResponseEntity.ok("Aluno excluído com sucesso!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
-    @PutMapping("/atualizar/{id}")
-    public ResponseEntity<Aluno> atualizarAluno(@PathVariable Long id, @RequestBody Aluno alunoAtualizado) {
-        Aluno aluno = alunoService.atualizar(id, alunoAtualizado);
 
-        if (aluno == null) {
-            return ResponseEntity.notFound().build();
-        }
 
-        return ResponseEntity.ok(aluno);
+    @GetMapping("/estatisticas")
+    public ResponseEntity<DashboardStatsDTO> getEstatisticas() {
+        return ResponseEntity.ok(alunoService.buscarEstatisticas());
     }
 
 

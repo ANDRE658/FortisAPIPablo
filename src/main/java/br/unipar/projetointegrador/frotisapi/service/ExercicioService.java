@@ -20,20 +20,24 @@ public class ExercicioService {
         this.exercicioRepository = exercicioRepository;
     }
 
-    // OK: Lista o catálogo
+    // Lista apenas os exercícios ATIVOS
     public List<ExercicioDTO> listarTodos() {
-        List<Exercicio> entidades = exercicioRepository.findAll();
+        List<Exercicio> entidades = exercicioRepository.findAllByAtivoTrue();
         return entidades.stream()
                 .map(ExercicioDTO::new)
                 .collect(Collectors.toList());
     }
 
-    // OK: Deleta do catálogo
+    // Realiza a exclusão LÓGICA (apenas desativa)
     public void deleteById(Long id) {
-        if (!exercicioRepository.existsById(id)) {
+        Exercicio exercicio = exercicioRepository.findById(id).orElse(null);
+
+        if (exercicio == null) {
             throw new RuntimeException("Exercício com ID " + id + " não encontrado.");
         }
-        exercicioRepository.deleteById(id);
+
+        exercicio.setAtivo(false); // Marca como inativo
+        exercicioRepository.save(exercicio); // Salva a alteração
     }
 
     // --- CORREÇÃO ---

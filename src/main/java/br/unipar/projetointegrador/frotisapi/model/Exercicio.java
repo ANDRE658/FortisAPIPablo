@@ -1,6 +1,5 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
-// Remova as importações de JsonBackReference e List
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,4 +15,6 @@ public class Exercicio {
 
     private String nome;
 
+    // --- NOVO CAMPO ---
+    private Boolean ativo = true;
 }

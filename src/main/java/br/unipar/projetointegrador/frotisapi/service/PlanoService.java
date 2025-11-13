@@ -21,18 +21,23 @@ public class PlanoService {
         return planoRepository.save(plano);
     }
 
-    public List<Plano> listarTodos() {
-        return planoRepository.findAll();
-    }
 
     public Plano buscarPorId(Long id) {
         return planoRepository.findById(id).orElse(null);
     }
 
-    public void deletar(Long id) {
-        planoRepository.deleteById(id);
+    public List<Plano> listarTodos() {
+        return planoRepository.findAllByAtivoTrue();
     }
 
+    // Em vez de apagar do banco, apenas desativa
+    public void deletar(Long id) {
+        Plano plano = planoRepository.findById(id).orElse(null);
+        if (plano != null) {
+            plano.setAtivo(false); // Marca como inativo
+            planoRepository.save(plano); // Salva a alteração
+        }
+    }
     /**
      * ✅ MÉTODO ATUALIZAR CORRIGIDO
      * Garante que seu método aceita os dois parâmetros (Long id, Plano plano)

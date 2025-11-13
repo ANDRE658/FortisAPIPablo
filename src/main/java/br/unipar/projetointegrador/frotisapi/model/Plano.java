@@ -1,14 +1,14 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.List;
 
 @Entity
-@Getter // <-- ESSENCIAL PARA GERAR O getId()
-@Setter // <-- ESSENCIAL PARA GERAR OS SETTERS
+@Getter
+@Setter
 public class Plano {
 
     @Id
@@ -18,11 +18,17 @@ public class Plano {
     private String nome;
     private Double valor;
 
-    // Se você tiver um relacionamento com Matrícula, por exemplo:
+    // --- NOVO CAMPO ---
+    // true = plano visível/disponível
+    // false = plano excluído logicamente
+    private Boolean ativo = true;
+
+    // Adicione o import: import com.fasterxml.jackson.annotation.JsonIgnore;
+
     @OneToMany(mappedBy = "plano")
+    @JsonIgnore // <--- ADICIONE ISTO (Impede o loop infinito)
     private List<Matricula> matriculas;
 
-    // Construtores, se necessário...
     public Plano() {
     }
 }

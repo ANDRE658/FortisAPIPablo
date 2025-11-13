@@ -75,4 +75,13 @@ public class InstrutorController {
         }
         return ResponseEntity.ok(instrutorAtualizado);
     }
+    @DeleteMapping("/excluir/{id}")
+    public ResponseEntity<Void> excluirInstrutor(@PathVariable Long id) {
+        try {
+            instrutorService.excluir(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

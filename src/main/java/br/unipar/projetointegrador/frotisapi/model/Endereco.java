@@ -10,7 +10,6 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-
 public class Endereco {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +20,6 @@ public class Endereco {
     private String estado;
     private String cep;
 
-
-
-
+    // --- NOVO CAMPO ---
+    private String bairro;
 }

@@ -3,6 +3,7 @@ package br.unipar.projetointegrador.frotisapi.repository;
 import br.unipar.projetointegrador.frotisapi.model.Aluno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,10 +11,33 @@ import java.util.Optional;
 public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
     Optional<Aluno> findByCpf(String cpf);
-    // 👇 **** ADICIONE ESTE MÉTODO ****
+    // Conta alunos ativos
+    long countByAtivoTrue();
+
+    // Conta alunos inativos
+    long countByAtivoFalse();
+
+    // Conta alunos cadastrados DEPOIS de uma certa data
+    long countByDataCadastroAfter(java.util.Date data);
+
+    Optional<Aluno> findByEmail(String email);
+
+    Optional<Aluno> findByTelefone(String telefone);
+
+    // ATUALIZADO: Adicionado "WHERE a.ativo = true"
     @Query("SELECT DISTINCT a FROM Aluno a " +
             "LEFT JOIN FETCH a.matriculaList m " +
-            "LEFT JOIN FETCH m.plano")
+            "LEFT JOIN FETCH m.plano " +
+            "WHERE a.ativo = true")
     List<Aluno> findAllWithMatriculasAndPlanos();
+
+    // --- NOVO MÉTODO PARA BUSCAR POR ID (EDITAR) ---
+    // Traz Aluno + Endereço + Matrículas + Plano
+    @Query("SELECT a FROM Aluno a " +
+            "LEFT JOIN FETCH a.endereco " +
+            "LEFT JOIN FETCH a.matriculaList m " +
+            "LEFT JOIN FETCH m.plano " +
+            "WHERE a.id = :id")
+    Optional<Aluno> findByIdWithMatriculas(@Param("id") Long id);
 
 }
