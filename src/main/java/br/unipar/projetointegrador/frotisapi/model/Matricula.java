@@ -27,4 +27,9 @@ public class Matricula {
     @ManyToOne
     @JoinColumn(name = "plano_id")
     private Plano plano;
+
+    // --- NOVO CAMPO ---
+    @ManyToOne
+    @JoinColumn(name = "instrutor_id")
+    private Instrutor instrutor;
 }

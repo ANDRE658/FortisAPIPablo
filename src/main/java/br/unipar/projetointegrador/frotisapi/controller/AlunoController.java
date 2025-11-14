@@ -3,11 +3,13 @@ package br.unipar.projetointegrador.frotisapi.controller;
 import br.unipar.projetointegrador.frotisapi.dto.AlunoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.DashboardStatsDTO;
 import br.unipar.projetointegrador.frotisapi.model.Aluno;
+import br.unipar.projetointegrador.frotisapi.model.Usuario;
 import br.unipar.projetointegrador.frotisapi.service.AlunoService;
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,29 +26,28 @@ public class AlunoController {
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<Aluno>> listarAlunos() {
-        List<Aluno> alunos = alunoService.listarTodos();
+    public ResponseEntity<List<Aluno>> listarAlunos(@AuthenticationPrincipal Usuario usuarioLogado) {
+        // Passa o usuário logado para o serviço, que fará o filtro
+        List<Aluno> alunos = alunoService.listarTodos(usuarioLogado);
 
         if (alunos.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.ok(alunos);
     }
 
     @PostMapping("/salvar")
-    public ResponseEntity<?> salvarAluno(@RequestBody AlunoRequestDTO dto) { // Use <?> para flexibilidade
+    public ResponseEntity<?> salvarAluno(@RequestBody AlunoRequestDTO dto) {
         try {
-            // ... conversão do DTO ...
             Aluno aluno = dto.toEntity();
             String senha = dto.getSenha();
             Long planoId = dto.getPlanoId();
+            Long instrutorId = dto.getInstrutorId(); // <-- NOVO
 
-            Aluno alunoSalvo = alunoService.salvar(aluno, senha, planoId);
+            Aluno alunoSalvo = alunoService.salvar(aluno, senha, planoId, instrutorId); // <-- NOVO
             return ResponseEntity.status(HttpStatus.CREATED).body(alunoSalvo);
 
         } catch (IllegalArgumentException e) {
-            // AQUI ESTÁ O SEGREDO: Retorna a mensagem de erro do Service
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno: " + e.getMessage());

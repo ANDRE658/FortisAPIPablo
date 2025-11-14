@@ -31,10 +31,8 @@ public class Treino {
     private FichaTreino fichaTreino;
 
 
-    // --- ADICIONE A ANOTAÇÃO AQUI ---
-    @JsonManagedReference("treino-itens") // "Apelido" da relação
+    @JsonManagedReference("treino-itens")
     @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemTreino> itensTreino;
-
 
 }

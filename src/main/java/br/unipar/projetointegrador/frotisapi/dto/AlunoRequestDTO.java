@@ -26,9 +26,12 @@ public class AlunoRequestDTO {
 
     private Long planoId;
 
+    private Long instrutorId;
+
     public Aluno toEntity() {
         Aluno aluno = new Aluno();
         aluno.setNome(this.nome);
+
 
         // --- ALTERAÇÃO AQUI: Limpa a formatação (mantém só números) ---
         aluno.setCpf(this.CPF != null ? this.CPF.replaceAll("[^0-9]", "") : null);

@@ -1,5 +1,6 @@
 package br.unipar.projetointegrador.frotisapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,5 +33,6 @@ public class Instrutor {
 
     @JsonManagedReference("instrutor-fichas")
     @OneToMany(mappedBy = "instrutor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // <-- ADICIONE ESTA LINHA PARA QUEBRAR O LOOP
     private List<FichaTreino> fichasSupervisionadas;
 }

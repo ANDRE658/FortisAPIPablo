@@ -31,7 +31,7 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
             "WHERE a.ativo = true")
     List<Aluno> findAllWithMatriculasAndPlanos();
 
-    // --- NOVO MÉTODO PARA BUSCAR POR ID (EDITAR) ---
+
     // Traz Aluno + Endereço + Matrículas + Plano
     @Query("SELECT a FROM Aluno a " +
             "LEFT JOIN FETCH a.endereco " +
@@ -39,5 +39,12 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
             "LEFT JOIN FETCH m.plano " +
             "WHERE a.id = :id")
     Optional<Aluno> findByIdWithMatriculas(@Param("id") Long id);
+
+    // Busca alunos ATIVOS de um instrutor específico, já trazendo os planos
+    @Query("SELECT DISTINCT a FROM Aluno a " +
+            "LEFT JOIN FETCH a.matriculaList m " +
+            "LEFT JOIN FETCH m.plano p " +
+            "WHERE m.instrutor.id = :instrutorId AND a.ativo = true")
+    List<Aluno> findAllAtivosByInstrutorIdWithMatriculas(@Param("instrutorId") Long instrutorId);
 
 }

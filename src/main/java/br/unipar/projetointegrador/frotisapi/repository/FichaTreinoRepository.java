@@ -18,7 +18,27 @@ public interface FichaTreinoRepository extends JpaRepository<FichaTreino, Long> 
             "WHERE f.id = :id")
     Optional<FichaTreino> findFichaComDiasById(@Param("id") Long id);
 
+    // --- NOVO MÉTODO ---
+    @Query("SELECT DISTINCT f FROM FichaTreino f " +
+            "LEFT JOIN FETCH f.aluno a " +
+            "WHERE f.instrutor.id = :instrutorId AND a.ativo = true")
+    List<FichaTreino> findAllByInstrutorId(@Param("instrutorId") Long instrutorId);
+    // Busca a Ficha e força o carregamento da lista de diasDeTreino (mas não dos itens)
+
+    @Query("SELECT DISTINCT f FROM FichaTreino f " +
+            "LEFT JOIN FETCH f.diasDeTreino " +
+            "WHERE f.id = :id")
+    Optional<FichaTreino> findByIdWithDiasDeTreino(@Param("id") Long id);
+
     // --- ADICIONE ESTE MÉTODO NOVO ---
     @Query("SELECT DISTINCT f FROM FichaTreino f LEFT JOIN FETCH f.aluno")
     List<FichaTreino> findAllComAlunos();
+
+    // Busca a Ficha e força o carregamento de TUDO (Dias E Itens)
+    @Query("SELECT DISTINCT f FROM FichaTreino f " +
+            "LEFT JOIN FETCH f.diasDeTreino dt " +         // Carrega os dias (Treino)
+            "LEFT JOIN FETCH dt.itensTreino it " +        // Carrega os itens (ItemTreino)
+            "LEFT JOIN FETCH it.exercicio " +           // Carrega os nomes dos exercícios
+            "WHERE f.id = :id")
+    Optional<FichaTreino> findByIdCompleta(@Param("id") Long id);
 }

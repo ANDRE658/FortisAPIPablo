@@ -137,8 +137,10 @@ public class FichaTreinoService {
     @Transactional
     public FichaTreino atualizarFichaCompleta(Long idFicha, FichaCompletaRequestDTO dto) throws Exception {
 
-        // 1. Busca a Ficha e o Aluno
-        FichaTreino ficha = fichaTreinoRepository.findById(idFicha)
+
+        // 1. Busca a Ficha (usando o findById padrão, que é LAZY)
+        // 1. Busca a Ficha (usando a nova query que FORÇA o carregamento de diasDeTreino)
+        FichaTreino ficha = fichaTreinoRepository.findByIdWithDiasDeTreino(idFicha)
                 .orElseThrow(() -> new Exception("Ficha ID " + idFicha + " não encontrada"));
 
         Aluno aluno = alunoRepository.findById(dto.getAlunoId())
@@ -154,36 +156,53 @@ public class FichaTreinoService {
 
         // 4. Reconstrói a lista de dias de treino (mesma lógica do 'salvar')
         for (TreinoCompletoDTO diaDTO : dto.getDiasDeTreino()) {
+            for (TreinoCompletoDTO diaDTO : dto.getDiasDeTreino()) {
+                Treino treino = new Treino();
+                treino.setFichaTreino(ficha);
+                treino.setDiaSemana(diaDTO.getDiaSemana());
+                treino.setNome(diaDTO.getNome());
 
-            Treino treino = new Treino();
-            treino.setFichaTreino(ficha); // Linka com a Ficha existente
-            treino.setDiaSemana(diaDTO.getDiaSemana());
-            treino.setNome(diaDTO.getNome());
+                if (diaDTO.getItensTreino() != null) { // Proteção extra
+                    for (ItemTreinoRequestDTO itemDTO : diaDTO.getItensTreino()) {
+                        Exercicio exercicio = exercicioRepository.findById(itemDTO.getExercicioId())
+                                .orElseThrow(() -> new Exception("Exercício ID " + itemDTO.getExercicioId() + " não encontrado"));
 
-            // 5. Itera e reconstrói os itens
-            for (ItemTreinoRequestDTO itemDTO : diaDTO.getItensTreino()) {
-                Exercicio exercicio = exercicioRepository.findById(itemDTO.getExercicioId())
-                        .orElseThrow(() -> new Exception("Exercício ID " + itemDTO.getExercicioId() + " não encontrado"));
+                        ItemTreino item = new ItemTreino();
+                        item.setTreino(treino);
+                        item.setExercicio(exercicio);
+                        item.setSeries(itemDTO.getSeries());
+                        item.setRepeticoes(itemDTO.getRepeticoes());
+                        item.setCarga(itemDTO.getCarga());
+                        item.setTempoDescansoSegundos(itemDTO.getTempoDescansoSegundos());
 
-                ItemTreino item = new ItemTreino();
-                item.setTreino(treino); // Linka com o Treino
-                item.setExercicio(exercicio); // Linka com o Exercício
-
-                item.setSeries(itemDTO.getSeries());
-                item.setRepeticoes(itemDTO.getRepeticoes());
-                item.setCarga(itemDTO.getCarga());
-                item.setTempoDescansoSegundos(itemDTO.getTempoDescansoSegundos());
-
-                treino.getItensTreino().add(item); // Adiciona o item ao dia
+                        treino.getItensTreino().add(item); // Adiciona o item ao dia
+                    }
+                }
+                ficha.getDiasDeTreino().add(treino); // Adiciona o dia à ficha
             }
-            ficha.getDiasDeTreino().add(treino); // Adiciona o dia à ficha
-        }
 
-        // 7. Salva a Ficha. O Cascade e o Orphan Removal fazem todo o trabalho.
-        return fichaTreinoRepository.save(ficha);
+            return fichaTreinoRepository.save(ficha);
+        }
     }
 
-    public List<FichaTreino> listarTodas() {
-        return fichaTreinoRepository.findAllComAlunos();
+    public List<FichaTreino> listarTodas(Usuario usuarioLogado) {
+
+        // SE FOR GERENCIADOR OU ALUNO, retorna a lista completa
+        // (O Aluno precisa da lista para filtrar no front-end e achar a si mesmo)
+        if (usuarioLogado.getRole() == Role.ROLE_GERENCIADOR || usuarioLogado.getRole() == Role.ROLE_ALUNO) {
+            return fichaTreinoRepository.findAllComAlunos();
+        }
+
+        // SE FOR INSTRUTOR, retorna apenas as suas
+        else if (usuarioLogado.getRole() == Role.ROLE_INSTRUTOR) {
+            if (usuarioLogado.getInstrutor() == null) {
+                return List.of();
+            }
+            Long instrutorId = usuarioLogado.getInstrutor().getId();
+            return fichaTreinoRepository.findAllByInstrutorId(instrutorId);
+        }
+
+        // Segurança: Se não for nenhuma das roles, não retorna nada
+        return List.of();
     }
 }

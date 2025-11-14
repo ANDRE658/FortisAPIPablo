@@ -2,11 +2,8 @@ package br.unipar.projetointegrador.frotisapi.service;
 
 import br.unipar.projetointegrador.frotisapi.dto.AlunoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.DashboardStatsDTO;
-import br.unipar.projetointegrador.frotisapi.model.Aluno;
-import br.unipar.projetointegrador.frotisapi.model.Role;
-import br.unipar.projetointegrador.frotisapi.model.Usuario;
-import br.unipar.projetointegrador.frotisapi.repository.AlunoRepository;
-import br.unipar.projetointegrador.frotisapi.repository.UsuarioRepository;
+import br.unipar.projetointegrador.frotisapi.model.*;
+import br.unipar.projetointegrador.frotisapi.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,11 +13,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-// 👇 **** 1. IMPORTS ADICIONAIS ****
-import br.unipar.projetointegrador.frotisapi.model.Matricula;
-import br.unipar.projetointegrador.frotisapi.model.Plano;
-import br.unipar.projetointegrador.frotisapi.repository.MatriculaRepository;
-import br.unipar.projetointegrador.frotisapi.repository.PlanoRepository;
 
 @Service
 public class AlunoService {
@@ -32,6 +24,7 @@ public class AlunoService {
     // 👇 **** 2. DECLARAÇÃO DOS CAMPOS (REPOSITÓRIOS) ****
     private final MatriculaRepository matriculaRepository;
     private final PlanoRepository planoRepository;
+    private final InstrutorRepository instrutorRepository;
 
     @Autowired
     public AlunoService(AlunoRepository alunoRepository,
@@ -39,12 +32,13 @@ public class AlunoService {
                         PasswordEncoder passwordEncoder,
                         // 👇 **** 3. ATUALIZAÇÃO DO CONSTRUTOR ****
                         MatriculaRepository matriculaRepository,
-                        PlanoRepository planoRepository) {
+                        PlanoRepository planoRepository, InstrutorRepository instrutorRepository) {
         this.alunoRepository = alunoRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.matriculaRepository = matriculaRepository; // O Spring injeta aqui
         this.planoRepository = planoRepository;         // E aqui
+        this.instrutorRepository = instrutorRepository;
     }
 
     public Aluno buscarPorId(Long id) {
@@ -64,9 +58,29 @@ public class AlunoService {
         alunoRepository.save(aluno); // Salva a alteração
     }
 
-    public List<Aluno> listarTodos() {
-        return alunoRepository.findAllWithMatriculasAndPlanos(); // Para isto
-    }//    }
+    /**
+     * Lista alunos baseado na role do usuário logado.
+     * GERENCIADOR: Vê todos os alunos ativos.
+     * INSTRUTOR: Vê apenas os seus alunos ativos.
+     */
+    public List<Aluno> listarTodos(Usuario usuarioLogado) {
+
+        if (usuarioLogado.getRole() == Role.ROLE_GERENCIADOR) {
+            // Gerenciador vê todos os alunos ativos
+            return alunoRepository.findAllWithMatriculasAndPlanos();
+
+        } else if (usuarioLogado.getRole() == Role.ROLE_INSTRUTOR) {
+            // Instrutor vê apenas os seus
+            if (usuarioLogado.getInstrutor() == null) {
+                return List.of(); // Se o usuário instrutor não está linkado a uma entidade instrutor
+            }
+            Long instrutorId = usuarioLogado.getInstrutor().getId();
+            return alunoRepository.findAllAtivosByInstrutorIdWithMatriculas(instrutorId);
+        }
+
+        // Alunos ou outros não devem ver a lista
+        return List.of();
+    }
 
 
 
@@ -86,10 +100,13 @@ public class AlunoService {
         return new DashboardStatsDTO(ativos, inativos, novos);
     }
 
+    /**
+     * Salva um novo Aluno, cria seu Usuário e sua Matrícula.
+     */
     @Transactional
-    public Aluno salvar(Aluno aluno, String senha, Long planoId) throws Exception {
+    public Aluno salvar(Aluno aluno, String senha, Long planoId, Long instrutorId) throws Exception {
 
-        // --- 1. Limpeza de dados (Remove formatação, mantendo apenas números) ---
+        // --- 1. Limpa formatação (mantém só números) ---
         if (aluno.getCpf() != null) {
             aluno.setCpf(aluno.getCpf().replaceAll("[^0-9]", ""));
         }
@@ -97,10 +114,12 @@ public class AlunoService {
             aluno.setTelefone(aluno.getTelefone().replaceAll("[^0-9]", ""));
         }
 
-        // --- 2. Validação de Unicidade (Verifica se já existe no banco) ---
+        // --- 2. Validação de Unicidade (CPF, Email, Telefone) ---
         validarUnicidade(aluno);
 
-        // --- 3. Salva o Aluno ---
+        // --- 3. Salva o Aluno (Define Padrões) ---
+        aluno.setAtivo(true);
+        aluno.setDataCadastro(new Date()); // Define a data de cadastro
         Aluno alunoSalvo = alunoRepository.save(aluno);
 
         // --- 4. Cria o Usuário de Acesso (Login) ---
@@ -108,46 +127,48 @@ public class AlunoService {
             throw new IllegalArgumentException("A senha é obrigatória.");
         }
         Usuario novoUsuario = new Usuario();
-        novoUsuario.setLogin(aluno.getEmail()); // O login é o email
+        novoUsuario.setLogin(aluno.getEmail());
         novoUsuario.setSenha(passwordEncoder.encode(senha));
         novoUsuario.setRole(Role.ROLE_ALUNO);
-
-        // Se você tiver adicionado um campo 'aluno' na entidade Usuario, descomente abaixo:
-        // novoUsuario.setAluno(alunoSalvo);
-
+        // (Opcional: Se Usuario tiver link para Aluno, setar aqui)
         usuarioRepository.save(novoUsuario);
 
-        // --- 5. Cria a Matrícula (Vínculo com o Plano) ---
-        if (planoId != null) {
+        // --- 5. Cria a Matrícula (Vínculo com Plano e Instrutor) ---
+        if (planoId != null && instrutorId != null) {
             Plano planoSelecionado = planoRepository.findById(planoId)
                     .orElseThrow(() -> new Exception("Plano com ID " + planoId + " não encontrado."));
+
+            Instrutor instrutorSelecionado = instrutorRepository.findById(instrutorId)
+                    .orElseThrow(() -> new Exception("Instrutor com ID " + instrutorId + " não encontrado."));
 
             Matricula novaMatricula = new Matricula();
             novaMatricula.setAluno(alunoSalvo);
             novaMatricula.setPlano(planoSelecionado);
+            novaMatricula.setInstrutor(instrutorSelecionado);
 
             matriculaRepository.save(novaMatricula);
         } else {
-            throw new IllegalArgumentException("O plano é obrigatório.");
+            throw new IllegalArgumentException("O plano e o instrutor responsável são obrigatórios.");
         }
 
         return alunoSalvo;
     }
 
+    /**
+     * Atualiza um Aluno, seu Endereço e sua Matrícula (Plano/Instrutor).
+     */
     @Transactional
     public Aluno atualizar(Long id, AlunoRequestDTO dto) throws Exception {
-        // 1. Busca o aluno existente (com matrículas, graças à mudança anterior)
-        Aluno alunoExistente = buscarPorId(id);
 
+        Aluno alunoExistente = buscarPorId(id);
         if (alunoExistente == null) {
-            return null;
+            throw new Exception("Aluno com ID " + id + " não encontrado.");
         }
 
-        // 2. Converte o DTO para pegar os dados novos (CPF, Nome, etc.)
-        // Podemos usar o toEntity() para criar um objeto temporário e copiar os dados
+        // Pega os dados novos do DTO
         Aluno dadosNovos = dto.toEntity();
 
-        // 3. Limpeza e Validação (Igual fizemos antes)
+        // --- 1. Limpa formatação dos dados novos ---
         if (dadosNovos.getCpf() != null) {
             dadosNovos.setCpf(dadosNovos.getCpf().replaceAll("[^0-9]", ""));
         }
@@ -155,9 +176,10 @@ public class AlunoService {
             dadosNovos.setTelefone(dadosNovos.getTelefone().replaceAll("[^0-9]", ""));
         }
 
+        // --- 2. Valida unicidade (ignorando o ID atual) ---
         validarUnicidadeNaAtualizacao(dadosNovos, id);
 
-        // 4. Atualiza os dados básicos
+        // --- 3. Atualiza dados básicos ---
         alunoExistente.setNome(dadosNovos.getNome());
         alunoExistente.setCpf(dadosNovos.getCpf());
         alunoExistente.setEmail(dadosNovos.getEmail());
@@ -167,7 +189,7 @@ public class AlunoService {
         alunoExistente.setAltura(dadosNovos.getAltura());
         alunoExistente.setPeso(dadosNovos.getPeso());
 
-        // 5. Atualiza o Endereço
+        // --- 4. Atualiza Endereço ---
         if (alunoExistente.getEndereco() != null && dadosNovos.getEndereco() != null) {
             alunoExistente.getEndereco().setRua(dadosNovos.getEndereco().getRua());
             alunoExistente.getEndereco().setCidade(dadosNovos.getEndereco().getCidade());
@@ -178,32 +200,30 @@ public class AlunoService {
             alunoExistente.setEndereco(dadosNovos.getEndereco());
         }
 
-        // --- 6. ATUALIZA O PLANO (LÓGICA NOVA) ---
-        if (dto.getPlanoId() != null) {
-            // Busca o novo plano no banco
+        // --- 5. Atualiza Matrícula (Plano e Instrutor) ---
+        if (dto.getPlanoId() != null && dto.getInstrutorId() != null) {
             Plano novoPlano = planoRepository.findById(dto.getPlanoId())
                     .orElseThrow(() -> new Exception("Plano com ID " + dto.getPlanoId() + " não encontrado."));
 
-            // Verifica se o aluno já tem matrícula
-            if (alunoExistente.getMatriculaList() != null && !alunoExistente.getMatriculaList().isEmpty()) {
-                // Pega a primeira matrícula (assumindo 1 por aluno) e atualiza o plano
-                Matricula matriculaAtual = alunoExistente.getMatriculaList().get(0);
-                matriculaAtual.setPlano(novoPlano);
+            Instrutor novoInstrutor = instrutorRepository.findById(dto.getInstrutorId())
+                    .orElseThrow(() -> new Exception("Instrutor com ID " + dto.getInstrutorId() + " não encontrado."));
 
-                // Opcional: Se quiser salvar explicitamente, embora o Cascade já resolva
-                matriculaRepository.save(matriculaAtual);
+            Matricula matriculaAtual;
+            if (alunoExistente.getMatriculaList() != null && !alunoExistente.getMatriculaList().isEmpty()) {
+                matriculaAtual = alunoExistente.getMatriculaList().get(0);
             } else {
-                // Se por algum motivo o aluno estava sem matrícula, cria uma nova
-                Matricula novaMatricula = new Matricula();
-                novaMatricula.setAluno(alunoExistente);
-                novaMatricula.setPlano(novoPlano);
-                matriculaRepository.save(novaMatricula);
+                matriculaAtual = new Matricula();
+                matriculaAtual.setAluno(alunoExistente);
             }
+
+            matriculaAtual.setPlano(novoPlano);
+            matriculaAtual.setInstrutor(novoInstrutor);
+            matriculaRepository.save(matriculaAtual);
         }
-        // -----------------------------------------
 
         return alunoRepository.save(alunoExistente);
     }
+
 
     // --- MÉTODOS AUXILIARES DE VALIDAÇÃO ---
 

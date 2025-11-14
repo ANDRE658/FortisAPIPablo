@@ -23,9 +23,8 @@ public class FichaTreino {
     @JoinColumn(name = "aluno_id")
     private Aluno aluno;
 
-    // --- ADICIONE A ANOTAÇÃO AQUI ---
-    @JsonManagedReference("ficha-dias") // Novo "apelido"
-    @OneToMany(mappedBy = "fichaTreino", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("ficha-dias")
+    @OneToMany(mappedBy = "fichaTreino", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Treino> diasDeTreino;
 
     @JsonBackReference("instrutor-fichas") // O MESMO "apelido"

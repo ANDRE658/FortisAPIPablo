@@ -5,9 +5,11 @@ package br.unipar.projetointegrador.frotisapi.controller;
 import br.unipar.projetointegrador.frotisapi.dto.FichaCompletaRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.FichaTreinoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.model.FichaTreino;
+import br.unipar.projetointegrador.frotisapi.model.Usuario;
 import br.unipar.projetointegrador.frotisapi.service.FichaTreinoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,8 +45,8 @@ public class FichaTreinoController {
         return ResponseEntity.ok(ficha);
     }
     @GetMapping("/listar")
-    public ResponseEntity<List<FichaTreino>> listarFichas() {
-        List<FichaTreino> fichas = fichaTreinoService.listarTodas();
+    public ResponseEntity<List<FichaTreino>> listarFichas(@AuthenticationPrincipal Usuario usuarioLogado) {
+        List<FichaTreino> fichas = fichaTreinoService.listarTodas(usuarioLogado);
         if (fichas.isEmpty()) {
             return ResponseEntity.noContent().build(); // Retorna 204 se a lista for vazia
         }
@@ -69,15 +71,16 @@ public class FichaTreinoController {
      * NOVO ENDPOINT: Atualiza uma ficha completa
      */
     @PutMapping("/atualizar-completa/{id}")
-    public ResponseEntity<FichaTreino> atualizarFichaCompleta(
-            @PathVariable Long id,
-            @RequestBody FichaCompletaRequestDTO dto) {
+    public ResponseEntity<?> atualizarFichaCompleta( // Mude para ResponseEntity<?>
+                                                     @PathVariable Long id,
+                                                     @RequestBody FichaCompletaRequestDTO dto) {
         try {
             FichaTreino fichaAtualizada = fichaTreinoService.atualizarFichaCompleta(id, dto);
             return ResponseEntity.ok(fichaAtualizada); // Retorna 200 OK
+
         } catch (Exception e) {
-            // Se Ficha, Aluno ou Exercício não forem encontrados
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            // CORREÇÃO: Retorna 400 (Bad Request) com a MENSAGEM de erro
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
