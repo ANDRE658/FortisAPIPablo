@@ -94,11 +94,44 @@ public class AlunoController {
     }
 
 
+    //Busca os dados do ALUNO logado.
+    @GetMapping("/me")
+    public ResponseEntity<Aluno> getMeuAluno(@AuthenticationPrincipal Usuario usuarioLogado) {
+        if (usuarioLogado.getAluno() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null); // Não é um aluno
+        }
+        Long alunoId = usuarioLogado.getAluno().getId();
+        Aluno aluno = alunoService.buscarPorId(alunoId);
+        if (aluno == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(aluno);
+    }
+
+
+    //Atualiza os dados do ALUNO logado.
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMeuAluno(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody AlunoRequestDTO dto) {
+        if (usuarioLogado.getAluno() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuário não é um aluno.");
+        }
+        Long alunoId = usuarioLogado.getAluno().getId();
+
+        try {
+            Aluno aluno = alunoService.atualizar(alunoId, dto);
+            return ResponseEntity.ok(aluno);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao atualizar: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/estatisticas")
     public ResponseEntity<DashboardStatsDTO> getEstatisticas() {
         return ResponseEntity.ok(alunoService.buscarEstatisticas());
     }
-
+    @GetMapping("/estatisticas/instrutor/{instrutorId}")
+    public ResponseEntity<DashboardStatsDTO> getEstatisticasInstrutor(@PathVariable Long instrutorId) {
+        return ResponseEntity.ok(alunoService.buscarEstatisticasInstrutor(instrutorId));
+    }
 
 }

@@ -1,5 +1,6 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
+import br.unipar.projetointegrador.frotisapi.dto.AlterarSenhaRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.auth.AuthRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.auth.AuthResponseDTO;
 import br.unipar.projetointegrador.frotisapi.dto.auth.RegistroRequestDTO;
@@ -8,11 +9,14 @@ import br.unipar.projetointegrador.frotisapi.model.Usuario;
 import br.unipar.projetointegrador.frotisapi.repository.InstrutorRepository;
 import br.unipar.projetointegrador.frotisapi.repository.UsuarioRepository;
 import br.unipar.projetointegrador.frotisapi.service.JwtService;
+import br.unipar.projetointegrador.frotisapi.service.UserAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +39,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserAuthService userAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO authDTO) {
@@ -75,5 +82,23 @@ public class AuthController {
 
         usuarioRepository.save(novoUsuario);
         return ResponseEntity.ok("Usuário registrado com sucesso!");
+    }
+
+    // --- ADICIONE ESTE NOVO ENDPOINT ---
+    @PostMapping("/alterar-senha")
+    public ResponseEntity<String> alterarSenha(
+            @AuthenticationPrincipal Usuario usuarioLogado,
+            @RequestBody AlterarSenhaRequestDTO dto) {
+
+        if (usuarioLogado == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+        }
+
+        try {
+            userAuthService.alterarSenha(usuarioLogado, dto.getSenhaAtual(), dto.getNovaSenha());
+            return ResponseEntity.ok("Senha alterada com sucesso.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

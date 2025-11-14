@@ -83,6 +83,24 @@ public class AlunoService {
     }
 
 
+    /**
+     * NOVO MÉTODO: Busca estatísticas filtradas por Instrutor
+         */
+    public DashboardStatsDTO buscarEstatisticasInstrutor(Long instrutorId) {
+        // 1. Busca totais (filtrados)
+        long ativos = alunoRepository.countAtivosByInstrutorId(instrutorId);
+        long inativos = alunoRepository.countInativosByInstrutorId(instrutorId);
+
+        // 2. Calcula a data de 30 dias atrás
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -30);
+        Date trintaDiasAtras = cal.getTime();
+
+        // 3. Busca novos alunos (filtrados)
+        long novos = alunoRepository.countNovosByInstrutorId(instrutorId, trintaDiasAtras);
+
+        return new DashboardStatsDTO(ativos, inativos, novos);
+    }
 
     public DashboardStatsDTO buscarEstatisticas() {
         // 1. Busca totais de ativos e inativos
@@ -100,9 +118,9 @@ public class AlunoService {
         return new DashboardStatsDTO(ativos, inativos, novos);
     }
 
-    /**
-     * Salva um novo Aluno, cria seu Usuário e sua Matrícula.
-     */
+
+    //Salva um novo Aluno, cria seu Usuário e sua Matrícula.
+
     @Transactional
     public Aluno salvar(Aluno aluno, String senha, Long planoId, Long instrutorId) throws Exception {
 
@@ -130,6 +148,7 @@ public class AlunoService {
         novoUsuario.setLogin(aluno.getEmail());
         novoUsuario.setSenha(passwordEncoder.encode(senha));
         novoUsuario.setRole(Role.ROLE_ALUNO);
+        novoUsuario.setAluno(alunoSalvo);
         // (Opcional: Se Usuario tiver link para Aluno, setar aqui)
         usuarioRepository.save(novoUsuario);
 
@@ -154,9 +173,8 @@ public class AlunoService {
         return alunoSalvo;
     }
 
-    /**
-     * Atualiza um Aluno, seu Endereço e sua Matrícula (Plano/Instrutor).
-     */
+
+    //Atualiza um Aluno, seu Endereço e sua Matrícula (Plano/Instrutor).
     @Transactional
     public Aluno atualizar(Long id, AlunoRequestDTO dto) throws Exception {
 
@@ -196,6 +214,7 @@ public class AlunoService {
             alunoExistente.getEndereco().setEstado(dadosNovos.getEndereco().getEstado());
             alunoExistente.getEndereco().setCep(dadosNovos.getEndereco().getCep());
             alunoExistente.getEndereco().setBairro(dadosNovos.getEndereco().getBairro());
+            alunoExistente.getEndereco().setNumero(dadosNovos.getEndereco().getNumero());
         } else if (dadosNovos.getEndereco() != null) {
             alunoExistente.setEndereco(dadosNovos.getEndereco());
         }

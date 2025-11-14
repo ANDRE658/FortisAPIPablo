@@ -24,6 +24,17 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
     Optional<Aluno> findByTelefone(String telefone);
 
+    // --- INÍCIO DAS NOVAS QUERIES PARA DASHBOARD DO INSTRUTOR ---
+
+    @Query("SELECT COUNT(a) FROM Aluno a JOIN a.matriculaList m WHERE m.instrutor.id = :instrutorId AND a.ativo = true")
+    long countAtivosByInstrutorId(@Param("instrutorId") Long instrutorId);
+
+    @Query("SELECT COUNT(a) FROM Aluno a JOIN a.matriculaList m WHERE m.instrutor.id = :instrutorId AND a.ativo = false")
+    long countInativosByInstrutorId(@Param("instrutorId") Long instrutorId);
+
+    @Query("SELECT COUNT(a) FROM Aluno a JOIN a.matriculaList m WHERE m.instrutor.id = :instrutorId AND a.dataCadastro > :data")
+    long countNovosByInstrutorId(@Param("instrutorId") Long instrutorId, @Param("data") java.util.Date data);
+
     // ATUALIZADO: Adicionado "WHERE a.ativo = true"
     @Query("SELECT DISTINCT a FROM Aluno a " +
             "LEFT JOIN FETCH a.matriculaList m " +

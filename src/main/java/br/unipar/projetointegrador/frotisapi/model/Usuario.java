@@ -22,15 +22,20 @@ public class Usuario implements UserDetails {
     private String login; // Pode ser o email ou um username
     private String senha;
 
-    // --- INÍCIO DA CORREÇÃO ---
+    // Tipo do Usuário Adm, Instrutor, Aluno, etc.
     @Enumerated(EnumType.STRING) // <-- MUDE DE .ORDINAL PARA .STRING
     private Role role;
-    // --- FIM DA CORREÇÃO ---
+
 
     // Opcional: Se um Usuário DEVE ser um Instrutor
     @OneToOne
     @JoinColumn(name = "instrutor_id")
     private Instrutor instrutor; // Referência ao seu modelo Instrutor já existente
+
+    // Opcional: Se um Usuário DEVE ser um Aluno
+    @OneToOne
+    @JoinColumn(name = "aluno_id")
+    private Aluno aluno;
 
     // --- Métodos do UserDetails ---
 

@@ -4,9 +4,11 @@ import br.unipar.projetointegrador.frotisapi.dto.InstrutorListDTO;
 import br.unipar.projetointegrador.frotisapi.dto.InstrutorRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.InstrutorResponseDTO;
 import br.unipar.projetointegrador.frotisapi.model.Instrutor;
+import br.unipar.projetointegrador.frotisapi.model.Usuario;
 import br.unipar.projetointegrador.frotisapi.service.InstrutorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,6 +84,40 @@ public class InstrutorController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Busca os dados do INSTRUTOR logado.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<InstrutorResponseDTO> getMeuInstrutor(@AuthenticationPrincipal Usuario usuarioLogado) {
+        if (usuarioLogado.getInstrutor() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null); // Não é um instrutor
+        }
+        Long instrutorId = usuarioLogado.getInstrutor().getId();
+        InstrutorResponseDTO dto = instrutorService.buscarPorId(instrutorId);
+        if (dto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Atualiza os dados do INSTRUTOR logado.
+     */
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMeuInstrutor(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody InstrutorRequestDTO dto) {
+        if (usuarioLogado.getInstrutor() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuário não é um instrutor.");
+        }
+        Long instrutorId = usuarioLogado.getInstrutor().getId();
+
+        try {
+            Instrutor instrutor = instrutorService.atualizar(instrutorId, dto);
+            return ResponseEntity.ok(instrutor);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao atualizar: " + e.getMessage());
         }
     }
 }

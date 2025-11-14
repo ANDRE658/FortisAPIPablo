@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,10 +35,14 @@ public class SecurityConfig {
     @Autowired
     private UserAuthService userAuthService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Desabilita CSRF para REST APIs
+                .cors(Customizer.withDefaults()) // <--- ADICIONE ESTA LINHA
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sessão sem estado (stateless)
                 .authorizeHttpRequests(auth -> auth
 
@@ -47,7 +52,17 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll() // Endpoints de login e registro
                         .requestMatchers("/consulta-cep/**").permitAll() // Sua rota de CEP é pública
                         .requestMatchers(HttpMethod.POST, "/instrutor/salvar").permitAll() // Permite o cadastro público
+                        // --- REGRAS (MEUS DADOS) ---
+                        // Qualquer usuário AUTENTICADO pode alterar a própria senha
+                        .requestMatchers(HttpMethod.POST, "/auth/alterar-senha").authenticated()
+                        // Um ALUNO pode ver/atualizar SEUS DADOS
+                        .requestMatchers(HttpMethod.GET, "/aluno/me").hasRole("ALUNO")
+                        .requestMatchers(HttpMethod.PUT, "/aluno/me").hasRole("ALUNO")
+                        // Um INSTRUTOR pode ver/atualizar SEUS DADOS
+                        .requestMatchers(HttpMethod.GET, "/instrutor/me").hasRole("INSTRUTOR")
+                        .requestMatchers(HttpMethod.PUT, "/instrutor/me").hasRole("INSTRUTOR")
 
+                        
                         // Rotas do Gerenciador (Exemplos):
                         .requestMatchers(HttpMethod.DELETE, "/instrutor/**").hasRole("GERENCIADOR") // Só Gerenciador deleta
                         .requestMatchers(HttpMethod.DELETE, "/aluno/**").hasRole("GERENCIADOR") // Só Gerenciador deleta aluno
@@ -74,7 +89,7 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userAuthService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 
@@ -83,10 +98,7 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
 
     // 👇 **** ADICIONE ESTE MÉTODO INTEIRO NO FINAL DA CLASSE ****
     @Bean

@@ -93,6 +93,8 @@ public class InstrutorService {
                 instrutorExistente.getEndereco().setRua(dto.getEndereco().getRua());
                 instrutorExistente.getEndereco().setCidade(dto.getEndereco().getCidade());
                 instrutorExistente.getEndereco().setEstado(dto.getEndereco().getEstado());
+                instrutorExistente.getEndereco().setBairro(dto.getEndereco().getBairro());
+                instrutorExistente.getEndereco().setNumero(dto.getEndereco().getNumero());
                 // (Note: O Endereco não tem "bairro" no Model)
             } else {
                 // Cria um novo endereço se não existia
