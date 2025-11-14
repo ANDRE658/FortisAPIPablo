@@ -8,7 +8,10 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -25,7 +28,8 @@ public class FichaTreino {
 
     @JsonManagedReference("ficha-dias")
     @OneToMany(mappedBy = "fichaTreino", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Treino> diasDeTreino;
+    // MUDE DE LIST PARA SET E INICIALIZE
+    private Set<Treino> diasDeTreino = new HashSet<>();
 
     @JsonBackReference("instrutor-fichas") // O MESMO "apelido"
     @ManyToOne

@@ -51,29 +51,13 @@ public class FichaTreinoService {
         return fichaTreinoRepository.save(ficha);
     }
 
-    @Transactional// É importante que seja transacional
+    @Transactional // Mantenha transacional
     public FichaTreino buscarCompletoPorId(Long id) {
 
-        // Passo 1: Busca a ficha e o primeiro "saco" (diasDeTreino)
-        FichaTreino ficha = fichaTreinoRepository.findFichaComDiasById(id).orElse(null);
+        // Esta query agora vai funcionar, pois mudamos List para Set
+        FichaTreino fichaCompleta = fichaTreinoRepository.findByIdCompleta(id).orElse(null);
 
-        // Se a ficha não for encontrada ou não tiver dias, podemos retornar
-        if (ficha == null || ficha.getDiasDeTreino() == null || ficha.getDiasDeTreino().isEmpty()) {
-            return ficha;
-        }
-
-        // Passo 2: Coleta os IDs dos dias de treino que encontramos
-        List<Long> treinoIds = ficha.getDiasDeTreino().stream()
-                .map(Treino::getId)
-                .collect(Collectors.toList());
-
-        // Passo 3: Busca o segundo "saco" (itensTreino) para todos os dias de uma vez
-        List<Treino> diasComItensCarregados = treinoRepository.findTreinosCompletosByIds(treinoIds);
-
-        // Passo 4: Define a lista de dias da ficha como a lista completa que acabamos de buscar
-        ficha.setDiasDeTreino(diasComItensCarregados);
-
-        return ficha; // Retorna a ficha agora "montada"
+        return fichaCompleta;
     }
 
     /**
@@ -137,8 +121,6 @@ public class FichaTreinoService {
     @Transactional
     public FichaTreino atualizarFichaCompleta(Long idFicha, FichaCompletaRequestDTO dto) throws Exception {
 
-
-        // 1. Busca a Ficha (usando o findById padrão, que é LAZY)
         // 1. Busca a Ficha (usando a nova query que FORÇA o carregamento de diasDeTreino)
         FichaTreino ficha = fichaTreinoRepository.findByIdWithDiasDeTreino(idFicha)
                 .orElseThrow(() -> new Exception("Ficha ID " + idFicha + " não encontrada"));
@@ -154,35 +136,39 @@ public class FichaTreinoService {
         // todos os Treinos (e seus Itens) antigos associados a esta ficha.
         ficha.getDiasDeTreino().clear();
 
-        // 4. Reconstrói a lista de dias de treino (mesma lógica do 'salvar')
+        // 4. Reconstrói a lista de dias de treino (CORRIGIDO)
         for (TreinoCompletoDTO diaDTO : dto.getDiasDeTreino()) {
-            for (TreinoCompletoDTO diaDTO : dto.getDiasDeTreino()) {
-                Treino treino = new Treino();
-                treino.setFichaTreino(ficha);
-                treino.setDiaSemana(diaDTO.getDiaSemana());
-                treino.setNome(diaDTO.getNome());
 
-                if (diaDTO.getItensTreino() != null) { // Proteção extra
-                    for (ItemTreinoRequestDTO itemDTO : diaDTO.getItensTreino()) {
-                        Exercicio exercicio = exercicioRepository.findById(itemDTO.getExercicioId())
-                                .orElseThrow(() -> new Exception("Exercício ID " + itemDTO.getExercicioId() + " não encontrado"));
+            // (O loop interno duplicado foi removido)
 
-                        ItemTreino item = new ItemTreino();
-                        item.setTreino(treino);
-                        item.setExercicio(exercicio);
-                        item.setSeries(itemDTO.getSeries());
-                        item.setRepeticoes(itemDTO.getRepeticoes());
-                        item.setCarga(itemDTO.getCarga());
-                        item.setTempoDescansoSegundos(itemDTO.getTempoDescansoSegundos());
+            Treino treino = new Treino();
+            treino.setFichaTreino(ficha);
+            treino.setDiaSemana(diaDTO.getDiaSemana());
+            treino.setNome(diaDTO.getNome());
 
-                        treino.getItensTreino().add(item); // Adiciona o item ao dia
-                    }
+            if (diaDTO.getItensTreino() != null) { // Proteção extra
+                for (ItemTreinoRequestDTO itemDTO : diaDTO.getItensTreino()) {
+                    Exercicio exercicio = exercicioRepository.findById(itemDTO.getExercicioId())
+                            .orElseThrow(() -> new Exception("Exercício ID " + itemDTO.getExercicioId() + " não encontrado"));
+
+                    ItemTreino item = new ItemTreino();
+                    item.setTreino(treino);
+                    item.setExercicio(exercicio);
+                    item.setSeries(itemDTO.getSeries());
+                    item.setRepeticoes(itemDTO.getRepeticoes());
+                    item.setCarga(itemDTO.getCarga());
+                    item.setTempoDescansoSegundos(itemDTO.getTempoDescansoSegundos());
+
+                    // Se a lista 'itensTreino' em Treino.java não foi inicializada (ex: = new ArrayList<>())
+                    // você pode ter um NullPointerException aqui. (Veja recomendação abaixo)
+                    treino.getItensTreino().add(item); // Adiciona o item ao dia
                 }
-                ficha.getDiasDeTreino().add(treino); // Adiciona o dia à ficha
             }
-
-            return fichaTreinoRepository.save(ficha);
+            ficha.getDiasDeTreino().add(treino); // Adiciona o dia à ficha
         }
+
+        // 5. Salva a ficha DEPOIS que o loop terminar
+        return fichaTreinoRepository.save(ficha);
     }
 
     public List<FichaTreino> listarTodas(Usuario usuarioLogado) {

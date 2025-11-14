@@ -33,6 +33,7 @@ public class Treino {
 
     @JsonManagedReference("treino-itens")
     @OneToMany(mappedBy = "treino", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemTreino> itensTreino;
+    // MUDE DE LIST PARA SET E INICIALIZE
+    private Set<ItemTreino> itensTreino = new HashSet<>();
 
 }
