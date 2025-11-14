@@ -9,6 +9,9 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -55,6 +58,35 @@ public class Aluno implements UserDetails {
     // ------------------------------------------------------
 
     // --- MÉTODOS USERDETAILS ---
+
+    /**
+     * Calcula a idade do aluno com base na data de nascimento.
+     */
+    public int getIdade() {
+        if (this.dataNascimento == null) {
+            return 0;
+        }
+        LocalDate dataNasc = this.dataNascimento.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        return Period.between(dataNasc, LocalDate.now()).getYears();
+    }
+
+    /**
+     * Calcula o IMC (Índice de Massa Corporal) do aluno.
+     * A altura é armazenada em CM e precisa ser convertida para Metros.
+     */
+    public double getImc() {
+        if (this.altura <= 0) {
+            return 0.0;
+        }
+        // Converte altura de CM para Metros (ex: 175cm -> 1.75m)
+        double alturaEmMetros = this.altura / 100.0;
+        double imcCalc = this.peso / (alturaEmMetros * alturaEmMetros);
+
+        // Arredonda para 2 casas decimais
+        return Math.round(imcCalc * 100.0) / 100.0;
+    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();

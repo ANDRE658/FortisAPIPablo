@@ -103,11 +103,10 @@ public class InstrutorController {
         return ResponseEntity.ok(dto);
     }
 
-    /**
-     * Atualiza os dados do INSTRUTOR logado.
-     */
+    //atualiza os dados do INSTRUTOR logado.
     @PutMapping("/me")
-    public ResponseEntity<?> updateMeuInstrutor(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody InstrutorRequestDTO dto) {
+    public ResponseEntity<Object> updateMeuInstrutor(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody InstrutorRequestDTO dto) {
+        // Deve ser ResponseEntity<Object>, não ResponseEntity<?>
         if (usuarioLogado.getInstrutor() == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuário não é um instrutor.");
         }

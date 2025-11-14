@@ -1,6 +1,7 @@
 package br.unipar.projetointegrador.frotisapi.service;
 
 import br.unipar.projetointegrador.frotisapi.dto.AlunoRequestDTO;
+import br.unipar.projetointegrador.frotisapi.dto.AlunoVisualizacaoDTO;
 import br.unipar.projetointegrador.frotisapi.dto.DashboardStatsDTO;
 import br.unipar.projetointegrador.frotisapi.model.*;
 import br.unipar.projetointegrador.frotisapi.repository.*;
@@ -276,5 +277,30 @@ public class AlunoService {
         if (alunoComTel.isPresent() && !alunoComTel.get().getId().equals(idDoAluno)) {
             throw new IllegalArgumentException("Este Telefone já pertence a outro aluno.");
         }
+    }
+
+    /**
+     * NOVO: Busca um aluno e converte para o DTO de visualização do instrutor.
+     */
+    public AlunoVisualizacaoDTO buscarParaVisualizacao(Long id) throws Exception {
+        Aluno aluno = alunoRepository.findById(id)
+                .orElseThrow(() -> new Exception("Aluno com ID " + id + " não encontrado."));
+        return new AlunoVisualizacaoDTO(aluno);
+    }
+
+    /**
+     * NOVO: Atualiza apenas o peso de um aluno.
+     */
+    @Transactional
+    public Aluno atualizarPeso(Long alunoId, float novoPeso) throws Exception {
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new Exception("Aluno com ID " + alunoId + " não encontrado."));
+
+        if (novoPeso <= 0) {
+            throw new IllegalArgumentException("O peso deve ser um valor positivo.");
+        }
+
+        aluno.setPeso(novoPeso);
+        return alunoRepository.save(aluno);
     }
 }

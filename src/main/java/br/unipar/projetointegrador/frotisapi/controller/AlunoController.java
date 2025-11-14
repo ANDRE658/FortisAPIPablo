@@ -1,6 +1,8 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
 import br.unipar.projetointegrador.frotisapi.dto.AlunoRequestDTO;
+import br.unipar.projetointegrador.frotisapi.dto.AlunoVisualizacaoDTO;
+import br.unipar.projetointegrador.frotisapi.dto.AtualizarPesoRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.DashboardStatsDTO;
 import br.unipar.projetointegrador.frotisapi.model.Aluno;
 import br.unipar.projetointegrador.frotisapi.model.Usuario;
@@ -109,9 +111,19 @@ public class AlunoController {
     }
 
 
-    //Atualiza os dados do ALUNO logado.
+    @GetMapping("/estatisticas")
+    public ResponseEntity<DashboardStatsDTO> getEstatisticas() {
+        return ResponseEntity.ok(alunoService.buscarEstatisticas());
+    }
+    @GetMapping("/estatisticas/instrutor/{instrutorId}")
+    public ResponseEntity<DashboardStatsDTO> getEstatisticasInstrutor(@PathVariable Long instrutorId) {
+        return ResponseEntity.ok(alunoService.buscarEstatisticasInstrutor(instrutorId));
+    }
+
+    // ...
     @PutMapping("/me")
-    public ResponseEntity<?> updateMeuAluno(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody AlunoRequestDTO dto) {
+    public ResponseEntity<Object> updateMeuAluno(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody AlunoRequestDTO dto) {
+        // Deve ser ResponseEntity<Object>, não ResponseEntity<?>
         if (usuarioLogado.getAluno() == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuário não é um aluno.");
         }
@@ -125,13 +137,30 @@ public class AlunoController {
         }
     }
 
-    @GetMapping("/estatisticas")
-    public ResponseEntity<DashboardStatsDTO> getEstatisticas() {
-        return ResponseEntity.ok(alunoService.buscarEstatisticas());
+    @GetMapping("/visualizar/{id}")
+    public ResponseEntity<Object> visualizarAluno(@PathVariable Long id) {
+        // Deve ser ResponseEntity<Object>, não ResponseEntity<?>
+        try {
+            AlunoVisualizacaoDTO dto = alunoService.buscarParaVisualizacao(id);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build(); // .build() é usado quando não há corpo
+        }
     }
-    @GetMapping("/estatisticas/instrutor/{instrutorId}")
-    public ResponseEntity<DashboardStatsDTO> getEstatisticasInstrutor(@PathVariable Long instrutorId) {
-        return ResponseEntity.ok(alunoService.buscarEstatisticasInstrutor(instrutorId));
+
+    @PutMapping("/atualizar-peso/{id}")
+    public ResponseEntity<Object> atualizarPesoAluno(@PathVariable Long id, @RequestBody AtualizarPesoRequestDTO dto) {
+        // Deve ser ResponseEntity<Object>, não ResponseEntity<?>
+        try {
+            Aluno alunoAtualizado = alunoService.atualizarPeso(id, dto.getNovoPeso());
+            return ResponseEntity.ok(alunoAtualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // Esta é a linha que deu erro. Agora ela funcionará.
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // <-- CORREÇÃO
+        }
     }
 
 }
+

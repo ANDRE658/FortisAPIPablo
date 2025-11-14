@@ -62,7 +62,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/instrutor/me").hasRole("INSTRUTOR")
                         .requestMatchers(HttpMethod.PUT, "/instrutor/me").hasRole("INSTRUTOR")
 
-                        
+                        .requestMatchers(HttpMethod.GET, "/aluno/visualizar/**").hasAnyRole("INSTRUTOR", "GERENCIADOR")
+                        .requestMatchers(HttpMethod.PUT, "/aluno/atualizar-peso/**").hasAnyRole("INSTRUTOR", "GERENCIADOR")
+
                         // Rotas do Gerenciador (Exemplos):
                         .requestMatchers(HttpMethod.DELETE, "/instrutor/**").hasRole("GERENCIADOR") // Só Gerenciador deleta
                         .requestMatchers(HttpMethod.DELETE, "/aluno/**").hasRole("GERENCIADOR") // Só Gerenciador deleta aluno
