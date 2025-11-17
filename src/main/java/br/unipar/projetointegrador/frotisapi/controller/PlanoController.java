@@ -19,6 +19,11 @@ public class PlanoController {
         this.planoService = planoService;
     }
 
+    @GetMapping("/listar-todos")
+    public ResponseEntity<List<Plano>> listarTodosParaRelatorio() {
+        return ResponseEntity.ok(planoService.listarTodosParaRelatorio());
+    }
+
     @GetMapping("/listar")
     public ResponseEntity<List<Plano>> listarPlanos() {
         List<Plano> planos = planoService.listarTodos();

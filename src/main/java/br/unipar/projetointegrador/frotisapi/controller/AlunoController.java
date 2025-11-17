@@ -1,9 +1,6 @@
 package br.unipar.projetointegrador.frotisapi.controller;
 
-import br.unipar.projetointegrador.frotisapi.dto.AlunoRequestDTO;
-import br.unipar.projetointegrador.frotisapi.dto.AlunoVisualizacaoDTO;
-import br.unipar.projetointegrador.frotisapi.dto.AtualizarPesoRequestDTO;
-import br.unipar.projetointegrador.frotisapi.dto.DashboardStatsDTO;
+import br.unipar.projetointegrador.frotisapi.dto.*;
 import br.unipar.projetointegrador.frotisapi.model.Aluno;
 import br.unipar.projetointegrador.frotisapi.model.Usuario;
 import br.unipar.projetointegrador.frotisapi.service.AlunoService;
@@ -120,7 +117,7 @@ public class AlunoController {
         return ResponseEntity.ok(alunoService.buscarEstatisticasInstrutor(instrutorId));
     }
 
-    // ...
+
     @PutMapping("/me")
     public ResponseEntity<Object> updateMeuAluno(@AuthenticationPrincipal Usuario usuarioLogado, @RequestBody AlunoRequestDTO dto) {
         // Deve ser ResponseEntity<Object>, não ResponseEntity<?>
@@ -159,6 +156,25 @@ public class AlunoController {
         } catch (Exception e) {
             // Esta é a linha que deu erro. Agora ela funcionará.
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // <-- CORREÇÃO
+        }
+    }
+
+    // Endpoint para listar todos os alunos para relatórios
+    @GetMapping("/listar-todos")
+    public ResponseEntity<List<Aluno>> listarTodosParaRelatorio() {
+        return ResponseEntity.ok(alunoService.listarTodosParaRelatorio());
+    }
+
+    @PutMapping("/atualizar-altura/{id}")
+    public ResponseEntity<Object> atualizarAlturaAluno(@PathVariable Long id, @RequestBody AtualizarAlturaRequestDTO dto) {
+        try {
+            // Chama o método específico no service
+            Aluno alunoAtualizado = alunoService.atualizarAltura(id, dto.getNovaAltura());
+            return ResponseEntity.ok(alunoAtualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 

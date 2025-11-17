@@ -16,13 +16,13 @@ public class AlunoRequestDTO {
     private float peso;
     private float altura;
     private Date dataNascimento;
-    private String sexo; // <-- CAMPO NOVO
+    private String sexo;
+    private Integer diaVencimento;
 
-    // Campo do Endereco
-    private Endereco endereco; // O frontend enviará rua, cidade, estado, cep
-
-    // Campo de Senha
     private String senha;
+
+
+    private Endereco endereco;
 
     private Long planoId;
 
@@ -33,10 +33,10 @@ public class AlunoRequestDTO {
         aluno.setNome(this.nome);
 
 
-        // --- ALTERAÇÃO AQUI: Limpa a formatação (mantém só números) ---
+        // --- Limpa a formatação (mantém só números) ---
         aluno.setCpf(this.CPF != null ? this.CPF.replaceAll("[^0-9]", "") : null);
         aluno.setTelefone(this.telefone != null ? this.telefone.replaceAll("[^0-9]", "") : null);
-        // --------------------------------------------------------------
+
 
         aluno.setEmail(this.email);
         aluno.setPeso(this.peso);
@@ -44,6 +44,7 @@ public class AlunoRequestDTO {
         aluno.setDataNascimento(this.dataNascimento);
         aluno.setSexo(this.sexo);
         aluno.setEndereco(this.endereco);
+        aluno.setDiaVencimento(this.diaVencimento);
         return aluno;
     }
 }

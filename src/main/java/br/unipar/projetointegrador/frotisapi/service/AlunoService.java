@@ -303,4 +303,23 @@ public class AlunoService {
         aluno.setPeso(novoPeso);
         return alunoRepository.save(aluno);
     }
+
+    public List<Aluno> listarTodosParaRelatorio() {
+        return alunoRepository.findAllParaRelatorio();
+    }
+
+    // NOVO: Atualiza apenas a altura de um aluno.
+    @Transactional
+    public Aluno atualizarAltura(Long alunoId, float novaAltura) throws Exception {
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new Exception("Aluno com ID " + alunoId + " não encontrado."));
+
+        if (novaAltura <= 0) {
+            throw new IllegalArgumentException("A altura deve ser maior que zero.");
+        }
+
+        aluno.setAltura(novaAltura);
+        // O cálculo do IMC no frontend ou backend usará essa nova altura automaticamente
+        return alunoRepository.save(aluno);
+    }
 }

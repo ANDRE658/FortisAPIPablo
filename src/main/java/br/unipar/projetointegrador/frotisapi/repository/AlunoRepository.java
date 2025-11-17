@@ -58,4 +58,10 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
             "WHERE m.instrutor.id = :instrutorId AND a.ativo = true")
     List<Aluno> findAllAtivosByInstrutorIdWithMatriculas(@Param("instrutorId") Long instrutorId);
 
+    // Traz TODOS (Ativos e Inativos) para o relatório
+    @Query("SELECT DISTINCT a FROM Aluno a " +
+            "LEFT JOIN FETCH a.matriculaList m " +
+            "LEFT JOIN FETCH m.plano")
+    List<Aluno> findAllParaRelatorio();
+
 }

@@ -35,6 +35,8 @@ public class Aluno implements UserDetails {
     private float altura;
     private float peso;
     private Boolean ativo = true;
+    private Integer diaVencimento;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCadastro = new Date(); // Inicializa com a data atual
 
@@ -50,18 +52,15 @@ public class Aluno implements UserDetails {
     @JsonManagedReference("aluno-matriculas")
     private List<Matricula> matriculaList;
 
-    // --- ADICIONE ISTO PARA CORRIGIR O ERRO DE EXCLUSÃO ---
-    // Isso diz ao banco: "Se apagar o Aluno, apague também as Fichas de Treino dele"
+
     @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore // Evita loop infinito no JSON
     private List<FichaTreino> fichasTreino;
-    // ------------------------------------------------------
 
     // --- MÉTODOS USERDETAILS ---
 
-    /**
-     * Calcula a idade do aluno com base na data de nascimento.
-     */
+
+    //Calcula a idade do aluno com base na data de nascimento.
     public int getIdade() {
         if (this.dataNascimento == null) {
             return 0;

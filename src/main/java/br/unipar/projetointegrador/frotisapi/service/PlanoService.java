@@ -38,10 +38,7 @@ public class PlanoService {
             planoRepository.save(plano); // Salva a alteração
         }
     }
-    /**
-     * ✅ MÉTODO ATUALIZAR CORRIGIDO
-     * Garante que seu método aceita os dois parâmetros (Long id, Plano plano)
-     */
+
     public Plano atualizar(Long id, Plano planoAtualizado) {
         // 1. Verifica se o plano com o ID fornecido realmente existe
         if (planoRepository.existsById(id)) {
@@ -50,7 +47,11 @@ public class PlanoService {
             // 3. Salva as alterações
             return planoRepository.save(planoAtualizado);
         }
-        // 4. Se não existir, retorna nulo
+
         return null;
+    }
+
+    public List<Plano> listarTodosParaRelatorio() {
+        return planoRepository.findAll(); // O findAll() padrão do JPA já traz tudo
     }
 }

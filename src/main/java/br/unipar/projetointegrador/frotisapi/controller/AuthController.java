@@ -5,6 +5,7 @@ import br.unipar.projetointegrador.frotisapi.dto.auth.AuthRequestDTO;
 import br.unipar.projetointegrador.frotisapi.dto.auth.AuthResponseDTO;
 import br.unipar.projetointegrador.frotisapi.dto.auth.RegistroRequestDTO;
 import br.unipar.projetointegrador.frotisapi.model.Instrutor;
+import br.unipar.projetointegrador.frotisapi.model.Role;
 import br.unipar.projetointegrador.frotisapi.model.Usuario;
 import br.unipar.projetointegrador.frotisapi.repository.InstrutorRepository;
 import br.unipar.projetointegrador.frotisapi.repository.UsuarioRepository;
@@ -54,7 +55,22 @@ public class AuthController {
         var usuario = (Usuario) authentication.getPrincipal();
         String token = jwtService.generateToken(usuario);
 
-        return ResponseEntity.ok(new AuthResponseDTO(token));
+        // --- INÍCIO DA MUDANÇA ---
+        // Busca o nome real do usuário
+        String nomeUsuario = "";
+        if (usuario.getRole() == Role.ROLE_ALUNO && usuario.getAluno() != null) {
+            nomeUsuario = usuario.getAluno().getNome();
+        } else if (usuario.getRole() == Role.ROLE_INSTRUTOR && usuario.getInstrutor() != null) {
+            nomeUsuario = usuario.getInstrutor().getNome();
+        } else if (usuario.getRole() == Role.ROLE_GERENCIADOR) {
+            nomeUsuario = "Gerenciador"; // Define um nome padrão para o Admin
+        } else {
+            nomeUsuario = usuario.getLogin(); // Fallback (caso não ache o nome)
+        }
+
+        // Retorna o DTO atualizado com o token E o nome
+        return ResponseEntity.ok(new AuthResponseDTO(token, nomeUsuario));
+        // --- FIM DA MUDANÇA ---
     }
 
     /**
