@@ -61,7 +61,7 @@ public class FichaTreinoService {
     }
 
     /**
-     * NOVO MÉTODO: Salva a ficha, os dias e os itens, tudo em uma transação.
+     * MÉTODO CORRIGIDO: Monta o grafo de objetos na memória e salva tudo de uma vez (Cascade).
      */
     @Transactional
     public FichaTreino salvarFichaCompleta(FichaCompletaRequestDTO dto) throws Exception {
@@ -72,45 +72,45 @@ public class FichaTreinoService {
         Instrutor instrutor = instrutorRepository.findById(dto.getInstrutorId())
                 .orElseThrow(() -> new Exception("Instrutor não encontrado"));
 
-        // 2. Cria e Salva a "casca" da FichaTreino
+        // 2. Cria a "casca" da FichaTreino (SEM SALVAR AINDA)
         FichaTreino ficha = new FichaTreino();
         ficha.setAluno(aluno);
         ficha.setInstrutor(instrutor);
-        FichaTreino fichaSalva = fichaTreinoRepository.save(ficha);
 
-        // 3. Itera sobre os Dias de Treino (TreinoCompletoDTO)
+        // 3. Itera sobre os Dias de Treino e monta a estrutura
         for (TreinoCompletoDTO diaDTO : dto.getDiasDeTreino()) {
 
-            // 4. Cria e Salva a "casca" do Treino (Dia)
             Treino treino = new Treino();
-            treino.setFichaTreino(fichaSalva); // Linka com a Ficha
+            treino.setFichaTreino(ficha); // Linka com a Ficha
             treino.setDiaSemana(diaDTO.getDiaSemana());
             treino.setNome(diaDTO.getNome());
-            Treino treinoSalvo = treinoRepository.save(treino);
 
-            // 5. Itera sobre os Itens de Treino (ItemTreinoRequestDTO)
-            for (ItemTreinoRequestDTO itemDTO : diaDTO.getItensTreino()) {
+            // Itera sobre os Itens de Treino
+            if (diaDTO.getItensTreino() != null) {
+                for (ItemTreinoRequestDTO itemDTO : diaDTO.getItensTreino()) {
+                    Exercicio exercicio = exercicioRepository.findById(itemDTO.getExercicioId())
+                            .orElseThrow(() -> new Exception("Exercício ID " + itemDTO.getExercicioId() + " não encontrado"));
 
-                // 6. Busca o Exercicio (Ex: "Supino")
-                Exercicio exercicio = exercicioRepository.findById(itemDTO.getExercicioId())
-                        .orElseThrow(() -> new Exception("Exercício ID " + itemDTO.getExercicioId() + " não encontrado"));
+                    ItemTreino item = new ItemTreino();
+                    item.setTreino(treino); // Linka com o Treino (Dia)
+                    item.setExercicio(exercicio);
+                    item.setSeries(itemDTO.getSeries());
+                    item.setRepeticoes(itemDTO.getRepeticoes());
+                    item.setCarga(itemDTO.getCarga());
+                    item.setTempoDescansoSegundos(itemDTO.getTempoDescansoSegundos());
 
-                // 7. Cria e Salva o ItemTreino (Exercício do dia)
-                ItemTreino item = new ItemTreino();
-                item.setTreino(treinoSalvo); // Linka com o Treino (Dia)
-                item.setExercicio(exercicio); // Linka com o Exercício
-
-                item.setSeries(itemDTO.getSeries());
-                item.setRepeticoes(itemDTO.getRepeticoes());
-                item.setCarga(itemDTO.getCarga());
-                item.setTempoDescansoSegundos(itemDTO.getTempoDescansoSegundos());
-
-                itemTreinoRepository.save(item);
+                    // IMPORTANTE: Adiciona o item na lista do Treino
+                    treino.getItensTreino().add(item);
+                }
             }
+
+            // IMPORTANTE: Adiciona o treino na lista da Ficha
+            ficha.getDiasDeTreino().add(treino);
         }
 
-        // 8. Retorna a Ficha que foi salva
-        return fichaSalva;
+        // 4. Salva TUDO de uma vez.
+        // O CascadeType.ALL na entidade FichaTreino fará o trabalho de salvar os Treinos e Itens.
+        return fichaTreinoRepository.save(ficha);
     }
 
     /**
@@ -173,10 +173,19 @@ public class FichaTreinoService {
 
     public List<FichaTreino> listarTodas(Usuario usuarioLogado) {
 
-        // SE FOR GERENCIADOR OU ALUNO, retorna a lista completa
-        // (O Aluno precisa da lista para filtrar no front-end e achar a si mesmo)
-        if (usuarioLogado.getRole() == Role.ROLE_GERENCIADOR || usuarioLogado.getRole() == Role.ROLE_ALUNO) {
+        // Se for GERENCIADOR, vê tudo
+        if (usuarioLogado.getRole() == Role.ROLE_GERENCIADOR) {
             return fichaTreinoRepository.findAllComAlunos();
+        }
+
+        // Se for ALUNO, vê APENAS A SUA ficha
+        else if (usuarioLogado.getRole() == Role.ROLE_ALUNO) {
+            if (usuarioLogado.getAluno() == null) return List.of();
+
+            // Filtra a lista completa para achar a do aluno (solução rápida sem mudar o Repository agora)
+            return fichaTreinoRepository.findAllComAlunos().stream()
+                    .filter(f -> f.getAluno().getId().equals(usuarioLogado.getAluno().getId()))
+                    .collect(Collectors.toList());
         }
 
         // SE FOR INSTRUTOR, retorna apenas as suas
@@ -188,7 +197,6 @@ public class FichaTreinoService {
             return fichaTreinoRepository.findAllByInstrutorId(instrutorId);
         }
 
-        // Segurança: Se não for nenhuma das roles, não retorna nada
         return List.of();
     }
 }

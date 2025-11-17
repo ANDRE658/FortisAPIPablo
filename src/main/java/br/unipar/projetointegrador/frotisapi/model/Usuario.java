@@ -71,6 +71,17 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true; // Pode adicionar lógica de ativação
+        // Se o usuário for um Aluno, usa o status 'ativo' do Aluno
+        if (this.aluno != null) {
+            return Boolean.TRUE.equals(this.aluno.getAtivo());
+        }
+
+        // Se o usuário for um Instrutor, usa o status 'ativo' do Instrutor
+        if (this.instrutor != null) {
+            return Boolean.TRUE.equals(this.instrutor.getAtivo());
+        }
+
+        // Para outros tipos de usuário (ou se não tiver vínculo), permite o login
+        return true;
     }
 }

@@ -34,11 +34,13 @@ public interface FichaTreinoRepository extends JpaRepository<FichaTreino, Long> 
     @Query("SELECT DISTINCT f FROM FichaTreino f LEFT JOIN FETCH f.aluno")
     List<FichaTreino> findAllComAlunos();
 
-    // Busca a Ficha e força o carregamento de TUDO (Dias E Itens)
+    // Busca a Ficha e força o carregamento de TUDO: Aluno, Instrutor, Dias, Itens e Exercícios
     @Query("SELECT DISTINCT f FROM FichaTreino f " +
-            "LEFT JOIN FETCH f.diasDeTreino dt " +         // Carrega os dias (Treino)
-            "LEFT JOIN FETCH dt.itensTreino it " +        // Carrega os itens (ItemTreino)
-            "LEFT JOIN FETCH it.exercicio " +           // Carrega os nomes dos exercícios
+            "LEFT JOIN FETCH f.aluno " +                // <--- ADICIONADO: Garante o aluno
+            "LEFT JOIN FETCH f.instrutor " +            // <--- ADICIONADO: Garante o instrutor
+            "LEFT JOIN FETCH f.diasDeTreino dt " +
+            "LEFT JOIN FETCH dt.itensTreino it " +
+            "LEFT JOIN FETCH it.exercicio " +
             "WHERE f.id = :id")
     Optional<FichaTreino> findByIdCompleta(@Param("id") Long id);
 }

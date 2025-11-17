@@ -18,14 +18,8 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // --- INÍCIO DA CORREÇÃO ---
-    // Coloque a mesma chave que está no seu JwtUtil.java
-    // Esta chave precisa ser decodificada de Base64
+    // Chave em Base64 (Esta string decodifica para uma chave válida de 256 bits)
     private static final String SECRET_KEY = "Zm9ydGlzX3NlY3JldF9rZXlfc3VwZXJfc2VndXJhXzEyMzQ1X3ByZWNpc2Ffc2VyX211aXRvX2xvbmdhX3BhcmFfZnVuY2lvbmFyX2NvcnJldGFtZW50ZQ==";
-    // A string acima é a sua chave do JwtUtil ("fortis_secret_key...") convertida para Base64, que é o que o método getSignInKey() espera.
-    // --- FIM DA CORREÇÃO ---
-
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 horas
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -41,25 +35,20 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        // Adiciona os papéis (roles) como uma claim no token
         extraClaims.put("roles", userDetails.getAuthorities());
 
-        // ----------------- ADICIONE ESTAS LINHAS -----------------
-        // Converte UserDetails de volta para Usuario
         if (userDetails instanceof Usuario) {
             Usuario usuario = (Usuario) userDetails;
-            // Adiciona o ID do Instrutor ao token (se ele existir)
             if (usuario.getInstrutor() != null) {
                 extraClaims.put("instrutorId", usuario.getInstrutor().getId());
             }
         }
-        // ----------------- FIM DA ADIÇÃO -----------------
 
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 horas
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
